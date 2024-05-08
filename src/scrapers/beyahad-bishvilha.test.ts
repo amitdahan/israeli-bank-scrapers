@@ -1,6 +1,9 @@
 import BeyahadBishvilhaScraper from './beyahad-bishvilha';
 import {
-  maybeTestCompanyAPI, extendAsyncTimeout, getTestsConfig, exportTransactions,
+  maybeTestCompanyAPI,
+  extendAsyncTimeout,
+  getTestsConfig,
+  exportTransactions,
 } from '../tests/tests-utils';
 import { SCRAPERS } from '../definitions';
 import { LoginResults } from './base-scraper-with-browser';
@@ -19,7 +22,10 @@ describe('Beyahad Bishvilha scraper', () => {
     expect(SCRAPERS.beyahadBishvilha.loginFields).toContain('password');
   });
 
-  maybeTestCompanyAPI(COMPANY_ID, (config) => config.companyAPI.invalidPassword)('should fail on invalid user/password"', async () => {
+  maybeTestCompanyAPI(
+    COMPANY_ID,
+    (config) => config.companyAPI.invalidPassword,
+  )('should fail on invalid user/password"', async () => {
     const options = {
       ...testsConfig.options,
       companyId: COMPANY_ID,
@@ -41,9 +47,12 @@ describe('Beyahad Bishvilha scraper', () => {
     };
 
     const scraper = new BeyahadBishvilhaScraper(options);
-    const result = await scraper.scrape(testsConfig.credentials.beyahadBishvilha);
+    const result = await scraper.scrape(
+      testsConfig.credentials.beyahadBishvilha,
+    );
     expect(result).toBeDefined();
-    const error = `${result.errorType || ''} ${result.errorMessage || ''}`.trim();
+    const error =
+      `${result.errorType || ''} ${result.errorMessage || ''}`.trim();
     expect(error).toBe('');
     expect(result.success).toBeTruthy();
 

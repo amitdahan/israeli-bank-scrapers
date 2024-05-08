@@ -3,7 +3,10 @@ import { Frame, Page } from 'puppeteer';
 
 import { getDebug } from '../helpers/debug';
 import {
-  clickButton, elementPresentOnPage, pageEval, waitUntilElementFound,
+  clickButton,
+  elementPresentOnPage,
+  pageEval,
+  waitUntilElementFound,
 } from '../helpers/elements-interactions';
 import { fetchPostWithinPage } from '../helpers/fetch';
 import { getCurrentUrl } from '../helpers/navigation';
@@ -16,11 +19,16 @@ import {
   TransactionTypes,
   TransactionsAccount,
 } from '../transactions';
-import { BaseScraperWithBrowser, LoginOptions, LoginResults } from './base-scraper-with-browser';
+import {
+  BaseScraperWithBrowser,
+  LoginOptions,
+  LoginResults,
+} from './base-scraper-with-browser';
 import { ScraperScrapingResult } from './interface';
 
 const LOGIN_URL = 'https://www.cal-online.co.il/';
-const TRANSACTIONS_REQUEST_ENDPOINT = 'https://api.cal-online.co.il/Transactions/api/transactionsDetails/getCardTransactionsDetails';
+const TRANSACTIONS_REQUEST_ENDPOINT =
+  'https://api.cal-online.co.il/Transactions/api/transactionsDetails/getCardTransactionsDetails';
 
 const InvalidPasswordMessage = 'שם המשתמש או הסיסמה שהוזנו שגויים';
 
@@ -113,7 +121,7 @@ interface CardTransactionDetails extends CardTransactionDetailsError {
         }[];
         transactions: ScrapedTransaction[];
       }[];
-      immidiateDebits: { totalDebits: [], debitDays: [] };
+      immidiateDebits: { totalDebits: []; debitDays: [] };
     }[];
     blockedCardInd: boolean;
   };
@@ -122,16 +130,18 @@ interface CardTransactionDetails extends CardTransactionDetailsError {
   statusTitle: string;
 }
 
-
 async function getLoginFrame(page: Page) {
   let frame: Frame | null = null;
   debug('wait until login frame found');
-  await waitUntil(() => {
-    frame = page
-      .frames()
-      .find((f) => f.url().includes('calconnect')) || null;
-    return Promise.resolve(!!frame);
-  }, 'wait for iframe with login form', 10000, 1000);
+  await waitUntil(
+    () => {
+      frame = page.frames().find((f) => f.url().includes('calconnect')) || null;
+      return Promise.resolve(!!frame);
+    },
+    'wait for iframe with login form',
+    10000,
+    1000,
+  );
 
   if (!frame) {
     debug('failed to find login frame for 10 seconds');
@@ -143,16 +153,24 @@ async function getLoginFrame(page: Page) {
 
 async function hasInvalidPasswordError(page: Page) {
   const frame = await getLoginFrame(page);
-  const errorFound = await elementPresentOnPage(frame, 'div.general-error > div');
-  const errorMessage = errorFound ? await pageEval(frame, 'div.general-error > div', '', (item) => {
-    return (item as HTMLDivElement).innerText;
-  }) : '';
+  const errorFound = await elementPresentOnPage(
+    frame,
+    'div.general-error > div',
+  );
+  const errorMessage = errorFound
+    ? await pageEval(frame, 'div.general-error > div', '', (item) => {
+        return (item as HTMLDivElement).innerText;
+      })
+    : '';
   return errorMessage === InvalidPasswordMessage;
 }
 
 async function hasChangePasswordForm(page: Page) {
   const frame = await getLoginFrame(page);
-  const errorFound = await elementPresentOnPage(frame, '.change-password-subtitle');
+  const errorFound = await elementPresentOnPage(
+    frame,
+    '.change-password-subtitle',
+  );
   return errorFound;
 }
 
@@ -160,21 +178,25 @@ function getPossibleLoginResults() {
   debug('return possible login results');
   const urls: LoginOptions['possibleResults'] = {
     [LoginResults.Success]: [/dashboard/i],
-    [LoginResults.InvalidPassword]: [async (options?: { page?: Page }) => {
-      const page = options?.page;
-      if (!page) {
-        return false;
-      }
-      return hasInvalidPasswordError(page);
-    }],
+    [LoginResults.InvalidPassword]: [
+      async (options?: { page?: Page }) => {
+        const page = options?.page;
+        if (!page) {
+          return false;
+        }
+        return hasInvalidPasswordError(page);
+      },
+    ],
     // [LoginResults.AccountBlocked]: [], // TODO add when reaching this scenario
-    [LoginResults.ChangePassword]: [async (options?: { page?: Page }) => {
-      const page = options?.page;
-      if (!page) {
-        return false;
-      }
-      return hasChangePasswordForm(page);
-    }],
+    [LoginResults.ChangePassword]: [
+      async (options?: { page?: Page }) => {
+        const page = options?.page;
+        if (!page) {
+          return false;
+        }
+        return hasChangePasswordForm(page);
+      },
+    ],
   };
   return urls;
 }
@@ -187,39 +209,47 @@ function createLoginFields(credentials: ScraperSpecificCredentials) {
   ];
 }
 
-function convertParsedDataToTransactions(parsedData: CardTransactionDetails[]): Transaction[] {
-  const bankAccounts = parsedData
-    .flatMap((monthData) => monthData.result.bankAccounts);
+function convertParsedDataToTransactions(
+  parsedData: CardTransactionDetails[],
+): Transaction[] {
+  const bankAccounts = parsedData.flatMap(
+    (monthData) => monthData.result.bankAccounts,
+  );
 
-  const regularDebitDays = bankAccounts
-    .flatMap((accounts) => accounts.debitDates);
-  const immediateDebitDays = bankAccounts
-    .flatMap((accounts) => accounts.immidiateDebits.debitDays);
+  const regularDebitDays = bankAccounts.flatMap(
+    (accounts) => accounts.debitDates,
+  );
+  const immediateDebitDays = bankAccounts.flatMap(
+    (accounts) => accounts.immidiateDebits.debitDays,
+  );
 
   return [...regularDebitDays, ...immediateDebitDays]
     .flatMap((debitDate) => debitDate.transactions)
     .map((transaction) => {
-      const installments = (transaction.curPaymentNum && transaction.numOfPayments &&
-      {
-        number: transaction.curPaymentNum,
-        total: transaction.numOfPayments,
-      }) ||
+      const installments =
+        (transaction.curPaymentNum &&
+          transaction.numOfPayments && {
+            number: transaction.curPaymentNum,
+            total: transaction.numOfPayments,
+          }) ||
         undefined;
 
       const date = moment(transaction.trnPurchaseDate);
 
-      const chargedAmount = transaction.amtBeforeConvAndIndex * (-1);
-      const originalAmount = transaction.trnAmt * (-1);
+      const chargedAmount = transaction.amtBeforeConvAndIndex * -1;
+      const originalAmount = transaction.trnAmt * -1;
 
       const result: Transaction = {
         identifier: transaction.trnIntId,
-        type: [trnTypeCode.regular, trnTypeCode.standingOrder].includes(transaction.trnTypeCode) ?
-          TransactionTypes.Normal :
-          TransactionTypes.Installments,
+        type: [trnTypeCode.regular, trnTypeCode.standingOrder].includes(
+          transaction.trnTypeCode,
+        )
+          ? TransactionTypes.Normal
+          : TransactionTypes.Installments,
         status: TransactionStatuses.Completed,
-        date: installments ?
-          date.add(installments.number - 1, 'month').toISOString() :
-          date.toISOString(),
+        date: installments
+          ? date.add(installments.number - 1, 'month').toISOString()
+          : date.toISOString(),
         processedDate: new Date(transaction.debCrdDate).toISOString(),
         originalAmount,
         originalCurrency: transaction.trnCurrencySymbol,
@@ -238,7 +268,7 @@ function convertParsedDataToTransactions(parsedData: CardTransactionDetails[]): 
     });
 }
 
-type ScraperSpecificCredentials = { username: string, password: string };
+type ScraperSpecificCredentials = { username: string; password: string };
 
 class VisaCalScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> {
   openLoginPopup = async () => {
@@ -266,15 +296,20 @@ class VisaCalScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> 
       1000,
     );
     if (!initData) {
-      throw new Error('could not find \'init\' data in session storage');
+      throw new Error("could not find 'init' data in session storage");
     }
-    return initData?.result.cards.map(({ cardUniqueId, last4Digits }) => ({ cardUniqueId, last4Digits }));
+    return initData?.result.cards.map(({ cardUniqueId, last4Digits }) => ({
+      cardUniqueId,
+      last4Digits,
+    }));
   }
 
   async getAuthorizationHeader() {
-    const authModule = await getFromSessionStorage<{ auth: { calConnectToken: string } }>(this.page, 'auth-module');
+    const authModule = await getFromSessionStorage<{
+      auth: { calConnectToken: string };
+    }>(this.page, 'auth-module');
     if (!authModule) {
-      throw new Error('could not find \'auth-module\' in session storage');
+      throw new Error("could not find 'auth-module' in session storage");
     }
     return `CALAuthScheme ${authModule.auth.calConnectToken}`;
   }
@@ -303,7 +338,8 @@ class VisaCalScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> 
       fields: createLoginFields(credentials),
       submitButtonSelector: 'button[type="submit"]',
       possibleResults: getPossibleLoginResults(),
-      checkReadiness: async () => waitUntilElementFound(this.page, '#ccLoginDesktopBtn'),
+      checkReadiness: async () =>
+        waitUntilElementFound(this.page, '#ccLoginDesktopBtn'),
       preAction: this.openLoginPopup,
       postAction: async () => {
         try {
@@ -320,17 +356,22 @@ class VisaCalScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> 
           throw e;
         }
       },
-      userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36',
+      userAgent:
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36',
     };
   }
 
-  isCardTransactionDetails(result: CardTransactionDetails | CardTransactionDetailsError):
-    result is CardTransactionDetails {
+  isCardTransactionDetails(
+    result: CardTransactionDetails | CardTransactionDetailsError,
+  ): result is CardTransactionDetails {
     return (result as CardTransactionDetails).result !== undefined;
   }
 
   async fetchData(): Promise<ScraperScrapingResult> {
-    const defaultStartMoment = moment().subtract(1, 'years').subtract(6, 'months').add(1, 'day');
+    const defaultStartMoment = moment()
+      .subtract(1, 'years')
+      .subtract(6, 'months')
+      .add(1, 'day');
     const startDate = this.options.startDate || defaultStartMoment.toDate();
     const startMoment = moment.max(defaultStartMoment, moment(startDate));
     debug(`fetch transactions starting ${startMoment.format()}`);
@@ -344,15 +385,25 @@ class VisaCalScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> 
       cards.map(async (card) => {
         debug(`fetch transactions for card ${card.cardUniqueId}`);
 
-        const finalMonthToFetchMoment = moment().add(futureMonthsToScrape, 'month');
+        const finalMonthToFetchMoment = moment().add(
+          futureMonthsToScrape,
+          'month',
+        );
         const months = finalMonthToFetchMoment.diff(startMoment, 'months');
 
-        const allMonthsData: (CardTransactionDetails)[] = [];
+        const allMonthsData: CardTransactionDetails[] = [];
         for (let i = 0; i <= months; i += 1) {
           const month = finalMonthToFetchMoment.clone().subtract(i, 'months');
-          const monthData = await fetchPostWithinPage<CardTransactionDetails | CardTransactionDetailsError>(
-            this.page, TRANSACTIONS_REQUEST_ENDPOINT,
-            { cardUniqueId: card.cardUniqueId, month: month.format('M'), year: month.format('YYYY') },
+          const monthData = await fetchPostWithinPage<
+            CardTransactionDetails | CardTransactionDetailsError
+          >(
+            this.page,
+            TRANSACTIONS_REQUEST_ENDPOINT,
+            {
+              cardUniqueId: card.cardUniqueId,
+              month: month.format('M'),
+              year: month.format('YYYY'),
+            },
             {
               Authorization,
               'X-Site-Id': xSiteId,
@@ -360,7 +411,10 @@ class VisaCalScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> 
             },
           );
 
-          if (monthData?.statusCode !== 1) throw new Error(`failed to fetch transactions for card ${card.last4Digits}. Message: ${monthData?.title || ''}`);
+          if (monthData?.statusCode !== 1)
+            throw new Error(
+              `failed to fetch transactions for card ${card.last4Digits}. Message: ${monthData?.title || ''}`,
+            );
 
           if (!this.isCardTransactionDetails(monthData)) {
             throw new Error('monthData is not of type CardTransactionDetails');
@@ -372,9 +426,14 @@ class VisaCalScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> 
         const transactions = convertParsedDataToTransactions(allMonthsData);
 
         debug('filer out old transactions');
-        const txns = (this.options.outputData?.enableTransactionsFilterByDate ?? true) ?
-          filterOldTransactions(transactions, moment(startDate), this.options.combineInstallments || false) :
-          transactions;
+        const txns =
+          this.options.outputData?.enableTransactionsFilterByDate ?? true
+            ? filterOldTransactions(
+                transactions,
+                moment(startDate),
+                this.options.combineInstallments || false,
+              )
+            : transactions;
 
         return {
           txns,

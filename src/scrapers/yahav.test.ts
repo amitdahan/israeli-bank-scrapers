@@ -1,6 +1,9 @@
 import YahavScraper from './yahav';
 import {
-  maybeTestCompanyAPI, extendAsyncTimeout, getTestsConfig, exportTransactions,
+  maybeTestCompanyAPI,
+  extendAsyncTimeout,
+  getTestsConfig,
+  exportTransactions,
 } from '../tests/tests-utils';
 import { SCRAPERS } from '../definitions';
 import { LoginResults } from './base-scraper-with-browser';
@@ -20,7 +23,10 @@ describe('Yahav scraper', () => {
     expect(SCRAPERS.yahav.loginFields).toContain('nationalID');
   });
 
-  maybeTestCompanyAPI(COMPANY_ID, (config) => config.companyAPI.invalidPassword)('should fail on invalid user/password"', async () => {
+  maybeTestCompanyAPI(
+    COMPANY_ID,
+    (config) => config.companyAPI.invalidPassword,
+  )('should fail on invalid user/password"', async () => {
     const options = {
       ...testsConfig.options,
       companyId: COMPANY_ID,
@@ -28,7 +34,11 @@ describe('Yahav scraper', () => {
 
     const scraper = new YahavScraper(options);
 
-    const result = await scraper.scrape({ username: 'e10s12', password: '3f3ss3d', nationalID: '12345679' });
+    const result = await scraper.scrape({
+      username: 'e10s12',
+      password: '3f3ss3d',
+      nationalID: '12345679',
+    });
 
     expect(result).toBeDefined();
     expect(result.success).toBeFalsy();
@@ -44,7 +54,8 @@ describe('Yahav scraper', () => {
     const scraper = new YahavScraper(options);
     const result = await scraper.scrape(testsConfig.credentials.yahav);
     expect(result).toBeDefined();
-    const error = `${result.errorType || ''} ${result.errorMessage || ''}`.trim();
+    const error =
+      `${result.errorType || ''} ${result.errorMessage || ''}`.trim();
     expect(error).toBe('');
     expect(result.success).toBeTruthy();
 

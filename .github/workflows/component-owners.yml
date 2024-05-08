@@ -1,4 +1,4 @@
-name: "Component Owners"
+name: 'Component Owners'
 on:
   # pull_request_target is suggested for projects where pull requests will be
   # made from forked repositories. If pull_request is used in these cases,
@@ -19,5 +19,5 @@ jobs:
         with:
           config-file: .github/component_owners.yml
           repo-token: ${{ github.token }}
-          assign-owners: "false"
-          request-owner-reviews: "true"
+          assign-owners: 'false'
+          request-owner-reviews: 'true'

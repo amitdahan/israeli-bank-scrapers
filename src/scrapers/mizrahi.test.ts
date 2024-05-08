@@ -1,6 +1,9 @@
 import MizrahiScraper from './mizrahi';
 import {
-  maybeTestCompanyAPI, extendAsyncTimeout, getTestsConfig, exportTransactions,
+  maybeTestCompanyAPI,
+  extendAsyncTimeout,
+  getTestsConfig,
+  exportTransactions,
 } from '../tests/tests-utils';
 import { SCRAPERS } from '../definitions';
 import { ISO_DATE_REGEX } from '../constants';
@@ -21,7 +24,10 @@ describe('Mizrahi scraper', () => {
     expect(SCRAPERS.mizrahi.loginFields).toContain('password');
   });
 
-  maybeTestCompanyAPI(COMPANY_ID, (config) => config.companyAPI.invalidPassword)('should fail on invalid user/password', async () => {
+  maybeTestCompanyAPI(
+    COMPANY_ID,
+    (config) => config.companyAPI.invalidPassword,
+  )('should fail on invalid user/password', async () => {
     const options = {
       ...testsConfig.options,
       companyId: COMPANY_ID,
@@ -29,7 +35,10 @@ describe('Mizrahi scraper', () => {
 
     const scraper = new MizrahiScraper(options);
 
-    const result = await scraper.scrape({ username: 'e10s12', password: '3f3ss3d' });
+    const result = await scraper.scrape({
+      username: 'e10s12',
+      password: '3f3ss3d',
+    });
 
     expect(result).toBeDefined();
     expect(result.success).toBeFalsy();
@@ -45,7 +54,8 @@ describe('Mizrahi scraper', () => {
     const scraper = new MizrahiScraper(options);
     const result = await scraper.scrape(testsConfig.credentials.mizrahi);
     expect(result).toBeDefined();
-    const error = `${result.errorType || ''} ${result.errorMessage || ''}`.trim();
+    const error =
+      `${result.errorType || ''} ${result.errorMessage || ''}`.trim();
     expect(error).toBe('');
     expect(result.success).toBeTruthy();
     expect(result.accounts).toBeDefined();

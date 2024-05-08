@@ -7,15 +7,13 @@ module.exports = {
   coverageDirectory: 'coverage',
   rootDir: './src',
   transform: {
-    '^.+\\.ts$': 'ts-jest'
+    '^.+\\.ts$': 'ts-jest',
   },
-  setupFiles: [
-    './tests/jest-setup.ts',
-  ],
+  setupFiles: ['./tests/jest-setup.ts'],
   testEnvironment: 'node',
   globals: {
     'ts-jest': {
       babelConfig: true,
-    }
+    },
   },
 };

@@ -2,12 +2,28 @@ import buildUrl from 'build-url';
 import moment, { Moment } from 'moment';
 import { Page, LoadEvent } from 'puppeteer';
 import { fetchGetWithinPage } from '../helpers/fetch';
-import { BaseScraperWithBrowser, LoginResults, PossibleLoginResults } from './base-scraper-with-browser';
+import {
+  BaseScraperWithBrowser,
+  LoginResults,
+  PossibleLoginResults,
+} from './base-scraper-with-browser';
 import { waitForRedirect } from '../helpers/navigation';
-import { waitUntilElementFound, elementPresentOnPage, clickButton } from '../helpers/elements-interactions';
+import {
+  waitUntilElementFound,
+  elementPresentOnPage,
+  clickButton,
+} from '../helpers/elements-interactions';
 import getAllMonthMoments from '../helpers/dates';
-import { fixInstallments, sortTransactionsByDate, filterOldTransactions } from '../helpers/transactions';
-import { Transaction, TransactionStatuses, TransactionTypes } from '../transactions';
+import {
+  fixInstallments,
+  sortTransactionsByDate,
+  filterOldTransactions,
+} from '../helpers/transactions';
+import {
+  Transaction,
+  TransactionStatuses,
+  TransactionTypes,
+} from '../transactions';
 import { getDebug } from '../helpers/debug';
 import { ScraperOptions } from './interface';
 import { SHEKEL_CURRENCY, DOLLAR_CURRENCY, EURO_CURRENCY } from '../constants';
@@ -54,7 +70,7 @@ enum MaxPlanName {
   MonthlyPostponedInstallments = 'דחוי חודש תשלומים',
   ThirtyDaysPlus = 'עסקת 30 פלוס',
   TwoMonthsPostponed = 'דחוי חודשיים',
-  TwoMonthsPostponed2 = 'דחוי 2 ח\' תשלומים',
+  TwoMonthsPostponed2 = "דחוי 2 ח' תשלומים",
   MonthlyChargePlusInterest = 'חודשי + ריבית',
   Credit = 'קרדיט',
   CreditOutsideTheLimit = 'קרדיט-מחוץ למסגרת',
@@ -63,7 +79,7 @@ enum MaxPlanName {
   ReplacementCard = 'כרטיס חליפי',
   EarlyRepayment = 'פרעון מוקדם',
   MonthlyCardFee = 'דמי כרטיס',
-  CurrencyPocket = 'חיוב ארנק מטח'
+  CurrencyPocket = 'חיוב ארנק מטח',
 }
 
 const INVALID_DETAILS_SELECTOR = '#popupWrongDetails';
@@ -73,7 +89,10 @@ const categories = new Map<number, string>();
 
 function redirectOrDialog(page: Page) {
   return Promise.race([
-    waitForRedirect(page, 20000, false, [BASE_WELCOME_URL, `${BASE_WELCOME_URL}/`]),
+    waitForRedirect(page, 20000, false, [
+      BASE_WELCOME_URL,
+      `${BASE_WELCOME_URL}/`,
+    ]),
     waitUntilElementFound(page, INVALID_DETAILS_SELECTOR, true),
     waitUntilElementFound(page, LOGIN_ERROR_SELECTOR, true),
   ]);
@@ -85,18 +104,18 @@ function getTransactionsUrl(monthMoment: Moment) {
   const date = `${year}-${month}-01`;
 
   /**
-     * url explanation:
-     * userIndex: -1 for all account owners
-     * cardIndex: -1 for all cards under the account
-     * all other query params are static, beside the date which changes for request per month
-     */
+   * url explanation:
+   * userIndex: -1 for all account owners
+   * cardIndex: -1 for all cards under the account
+   * all other query params are static, beside the date which changes for request per month
+   */
   return buildUrl(BASE_API_ACTIONS_URL, {
     path: `/api/registered/transactionDetails/getTransactionsAndGraphs?filterData={"userIndex":-1,"cardIndex":-1,"monthView":true,"date":"${date}","dates":{"startDate":"0","endDate":"0"},"bankAccount":{"bankAccountIndex":-1,"cards":null}}&firstCallCardIndex=-1`,
   });
 }
 
 interface FetchCategoryResult {
-  result? : Array<{
+  result?: Array<{
     id: number;
     name: string;
   }>;
@@ -104,10 +123,13 @@ interface FetchCategoryResult {
 
 async function loadCategories(page: Page) {
   debug('Loading categories');
-  const res = await fetchGetWithinPage<FetchCategoryResult>(page, `${BASE_API_ACTIONS_URL}/api/contents/getCategories`);
+  const res = await fetchGetWithinPage<FetchCategoryResult>(
+    page,
+    `${BASE_API_ACTIONS_URL}/api/contents/getCategories`,
+  );
   if (res && Array.isArray(res.result)) {
     debug(`${res.result.length} categories loaded`);
-      res.result?.forEach(({ id, name }) => categories.set(id, name));
+    res.result?.forEach(({ id, name }) => categories.set(id, name));
   }
 }
 
@@ -180,10 +202,17 @@ function getChargedCurrency(currencyId: number | null) {
 }
 
 export function getMemo({
-  comments, fundsTransferReceiverOrTransfer, fundsTransferComment,
-}: Pick<ScrapedTransaction, 'comments'| 'fundsTransferReceiverOrTransfer' | 'fundsTransferComment'>) {
+  comments,
+  fundsTransferReceiverOrTransfer,
+  fundsTransferComment,
+}: Pick<
+  ScrapedTransaction,
+  'comments' | 'fundsTransferReceiverOrTransfer' | 'fundsTransferComment'
+>) {
   if (fundsTransferReceiverOrTransfer) {
-    const memo = comments ? `${comments} ${fundsTransferReceiverOrTransfer}` : fundsTransferReceiverOrTransfer;
+    const memo = comments
+      ? `${comments} ${fundsTransferReceiverOrTransfer}`
+      : fundsTransferReceiverOrTransfer;
     return fundsTransferComment ? `${memo}: ${fundsTransferComment}` : memo;
   }
 
@@ -192,18 +221,23 @@ export function getMemo({
 
 function mapTransaction(rawTransaction: ScrapedTransaction): Transaction {
   const isPending = rawTransaction.paymentDate === null;
-  const processedDate = moment(isPending ?
-    rawTransaction.purchaseDate :
-    rawTransaction.paymentDate).toISOString();
-  const status = isPending ? TransactionStatuses.Pending : TransactionStatuses.Completed;
+  const processedDate = moment(
+    isPending ? rawTransaction.purchaseDate : rawTransaction.paymentDate,
+  ).toISOString();
+  const status = isPending
+    ? TransactionStatuses.Pending
+    : TransactionStatuses.Completed;
 
   const installments = getInstallmentsInfo(rawTransaction.comments);
-  const identifier = installments ?
-    `${rawTransaction.dealData?.arn}_${installments.number}` :
-    rawTransaction.dealData?.arn;
+  const identifier = installments
+    ? `${rawTransaction.dealData?.arn}_${installments.number}`
+    : rawTransaction.dealData?.arn;
 
   return {
-    type: getTransactionType(rawTransaction.planName, rawTransaction.planTypeId),
+    type: getTransactionType(
+      rawTransaction.planName,
+      rawTransaction.planTypeId,
+    ),
     date: moment(rawTransaction.purchaseDate).toISOString(),
     processedDate,
     originalAmount: -rawTransaction.originalAmount,
@@ -218,7 +252,7 @@ function mapTransaction(rawTransaction: ScrapedTransaction): Transaction {
     status,
   };
 }
-interface ScrapedTransactionsResult{
+interface ScrapedTransactionsResult {
   result?: {
     transactions: ScrapedTransaction[];
   };
@@ -241,13 +275,18 @@ async function fetchTransactionsForMonth(page: Page, monthMoment: Moment) {
       }
 
       const mappedTransaction = mapTransaction(transaction);
-      transactionsByAccount[transaction.shortCardNumber].push(mappedTransaction);
+      transactionsByAccount[transaction.shortCardNumber].push(
+        mappedTransaction,
+      );
     });
 
   return transactionsByAccount;
 }
 
-function addResult(allResults: Record<string, Transaction[]>, result: Record<string, Transaction[]>) {
+function addResult(
+  allResults: Record<string, Transaction[]>,
+  result: Record<string, Transaction[]>,
+) {
   const clonedResults: Record<string, Transaction[]> = { ...allResults };
   Object.keys(result).forEach((accountNumber) => {
     if (!clonedResults[accountNumber]) {
@@ -258,15 +297,24 @@ function addResult(allResults: Record<string, Transaction[]>, result: Record<str
   return clonedResults;
 }
 
-function prepareTransactions(txns: Transaction[], startMoment: moment.Moment, combineInstallments: boolean, enableTransactionsFilterByDate: boolean) {
+function prepareTransactions(
+  txns: Transaction[],
+  startMoment: moment.Moment,
+  combineInstallments: boolean,
+  enableTransactionsFilterByDate: boolean,
+) {
   let clonedTxns = Array.from(txns);
   if (!combineInstallments) {
     clonedTxns = fixInstallments(clonedTxns);
   }
   clonedTxns = sortTransactionsByDate(clonedTxns);
-  clonedTxns = enableTransactionsFilterByDate ?
-    filterOldTransactions(clonedTxns, startMoment, combineInstallments || false) :
-    clonedTxns;
+  clonedTxns = enableTransactionsFilterByDate
+    ? filterOldTransactions(
+        clonedTxns,
+        startMoment,
+        combineInstallments || false,
+      )
+    : clonedTxns;
   return clonedTxns;
 }
 
@@ -287,8 +335,12 @@ async function fetchTransactions(page: Page, options: ScraperOptions) {
 
   Object.keys(allResults).forEach((accountNumber) => {
     let txns = allResults[accountNumber];
-    txns = prepareTransactions(txns, startMoment, options.combineInstallments || false,
-      (options.outputData?.enableTransactionsFilterByDate ?? true));
+    txns = prepareTransactions(
+      txns,
+      startMoment,
+      options.combineInstallments || false,
+      options.outputData?.enableTransactionsFilterByDate ?? true,
+    );
     allResults[accountNumber] = txns;
   });
 
@@ -299,12 +351,16 @@ function getPossibleLoginResults(page: Page): PossibleLoginResults {
   const urls: PossibleLoginResults = {};
   urls[LoginResults.Success] = [SUCCESS_URL];
   urls[LoginResults.ChangePassword] = [PASSWORD_EXPIRED_URL];
-  urls[LoginResults.InvalidPassword] = [async () => {
-    return elementPresentOnPage(page, INVALID_DETAILS_SELECTOR);
-  }];
-  urls[LoginResults.UnknownError] = [async () => {
-    return elementPresentOnPage(page, LOGIN_ERROR_SELECTOR);
-  }];
+  urls[LoginResults.InvalidPassword] = [
+    async () => {
+      return elementPresentOnPage(page, INVALID_DETAILS_SELECTOR);
+    },
+  ];
+  urls[LoginResults.UnknownError] = [
+    async () => {
+      return elementPresentOnPage(page, LOGIN_ERROR_SELECTOR);
+    },
+  ];
   return urls;
 }
 
@@ -315,7 +371,7 @@ function createLoginFields(credentials: ScraperSpecificCredentials) {
   ];
 }
 
-type ScraperSpecificCredentials = {username: string, password: string};
+type ScraperSpecificCredentials = { username: string; password: string };
 
 class MaxScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> {
   getLoginOptions(credentials: ScraperSpecificCredentials) {
@@ -330,10 +386,18 @@ class MaxScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> {
         await clickButton(this.page, '.personal-area > a.go-to-personal-area');
         await waitUntilElementFound(this.page, '#login-password-link', true);
         await clickButton(this.page, '#login-password-link');
-        await waitUntilElementFound(this.page, '#login-password.tab-pane.active app-user-login-form', true);
+        await waitUntilElementFound(
+          this.page,
+          '#login-password.tab-pane.active app-user-login-form',
+          true,
+        );
       },
       checkReadiness: async () => {
-        await waitUntilElementFound(this.page, '.personal-area > a.go-to-personal-area', true);
+        await waitUntilElementFound(
+          this.page,
+          '.personal-area > a.go-to-personal-area',
+          true,
+        );
       },
       postAction: async () => redirectOrDialog(this.page),
       possibleResults: getPossibleLoginResults(this.page),

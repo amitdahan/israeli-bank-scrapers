@@ -7,7 +7,7 @@ const transform = (file, api) => {
   root
     .find(j.ImportDeclaration)
     .find(j.Literal)
-    .replaceWith(nodePath => {
+    .replaceWith((nodePath) => {
       const { node } = nodePath;
 
       if (!node.value || node.value !== 'puppeteer') {

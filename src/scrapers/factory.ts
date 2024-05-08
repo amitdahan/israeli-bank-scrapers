@@ -19,7 +19,9 @@ import OneZeroScraper from './one-zero';
 import BehatsdaaScraper from './behatsdaa';
 import { assertNever } from '../assertNever';
 
-export default function createScraper(options: ScraperOptions): Scraper<ScraperCredentials> {
+export default function createScraper(
+  options: ScraperOptions,
+): Scraper<ScraperCredentials> {
   switch (options.companyId) {
     case CompanyTypes.hapoalim:
       return new HapoalimScraper(options);
@@ -64,6 +66,9 @@ export default function createScraper(options: ScraperOptions): Scraper<ScraperC
     case CompanyTypes.behatsdaa:
       return new BehatsdaaScraper(options);
     default:
-      return assertNever(options.companyId, `unknown company id ${options.companyId}`);
+      return assertNever(
+        options.companyId,
+        `unknown company id ${options.companyId}`,
+      );
   }
 }

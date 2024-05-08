@@ -6,18 +6,21 @@ import { ErrorResult, ScraperErrorTypes } from './errors';
 // TODO: Remove this type when the scraper 'factory' will return concrete scraper types
 // Instead of a generic interface (which in turn uses this type)
 export type ScraperCredentials =
-    {userCode: string, password: string} |
-    {username: string, password: string} |
-    {id: string, password: string} |
-    {id: string, password: string, num: string} |
-    {id: string, password: string, card6Digits: string} |
-    {username: string, nationalID: string, password: string} |
-    ({email: string, password: string} & ({
-      otpCodeRetriever: () => Promise<string>;
-      phoneNumber: string;
-    } | {
-      otpLongTermToken: string;
-    }));
+  | { userCode: string; password: string }
+  | { username: string; password: string }
+  | { id: string; password: string }
+  | { id: string; password: string; num: string }
+  | { id: string; password: string; card6Digits: string }
+  | { username: string; nationalID: string; password: string }
+  | ({ email: string; password: string } & (
+      | {
+          otpCodeRetriever: () => Promise<string>;
+          phoneNumber: string;
+        }
+      | {
+          otpLongTermToken: string;
+        }
+    ));
 
 export interface FutureDebit {
   amount: number;
@@ -46,7 +49,6 @@ export interface ScraperOptions {
    * shows the browser while scraping, good for debugging (default false)
    */
   showBrowser?: boolean;
-
 
   /**
    * scrape transactions to be processed X months in the future
@@ -137,19 +139,32 @@ export interface ScraperScrapingResult {
 
 export interface Scraper<TCredentials extends ScraperCredentials> {
   scrape(credentials: TCredentials): Promise<ScraperScrapingResult>;
-  onProgress(func: (companyId: CompanyTypes, payload: {type: ScraperProgressTypes}) => void): void;
-  triggerTwoFactorAuth(phoneNumber: string): Promise<ScraperTwoFactorAuthTriggerResult>;
-  getLongTermTwoFactorToken(otpCode: string): Promise<ScraperGetLongTermTwoFactorTokenResult>;
+  onProgress(
+    func: (
+      companyId: CompanyTypes,
+      payload: { type: ScraperProgressTypes },
+    ) => void,
+  ): void;
+  triggerTwoFactorAuth(
+    phoneNumber: string,
+  ): Promise<ScraperTwoFactorAuthTriggerResult>;
+  getLongTermTwoFactorToken(
+    otpCode: string,
+  ): Promise<ScraperGetLongTermTwoFactorTokenResult>;
 }
 
-export type ScraperTwoFactorAuthTriggerResult = ErrorResult | {
-  success: true;
-};
+export type ScraperTwoFactorAuthTriggerResult =
+  | ErrorResult
+  | {
+      success: true;
+    };
 
-export type ScraperGetLongTermTwoFactorTokenResult = ErrorResult | {
-  success: true;
-  longTermTwoFactorAuthToken: string;
-};
+export type ScraperGetLongTermTwoFactorTokenResult =
+  | ErrorResult
+  | {
+      success: true;
+      longTermTwoFactorAuthToken: string;
+    };
 
 export interface ScraperLoginResult {
   success: boolean;

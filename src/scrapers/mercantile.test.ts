@@ -1,6 +1,9 @@
 import MercantileScraper from './mercantile';
 import {
-  maybeTestCompanyAPI, extendAsyncTimeout, getTestsConfig, exportTransactions,
+  maybeTestCompanyAPI,
+  extendAsyncTimeout,
+  getTestsConfig,
+  exportTransactions,
 } from '../tests/tests-utils';
 import { SCRAPERS } from '../definitions';
 import { LoginResults } from './base-scraper-with-browser';
@@ -20,7 +23,10 @@ describe('Mercantile legacy scraper', () => {
     expect(SCRAPERS.mercantile.loginFields).toContain('num');
   });
 
-  maybeTestCompanyAPI(COMPANY_ID, (config) => config.companyAPI.invalidPassword)('should fail on invalid user/password"', async () => {
+  maybeTestCompanyAPI(
+    COMPANY_ID,
+    (config) => config.companyAPI.invalidPassword,
+  )('should fail on invalid user/password"', async () => {
     const options = {
       ...testsConfig.options,
       companyId: COMPANY_ID,
@@ -44,7 +50,8 @@ describe('Mercantile legacy scraper', () => {
     const scraper = new MercantileScraper(options);
     const result = await scraper.scrape(testsConfig.credentials.mercantile);
     expect(result).toBeDefined();
-    const error = `${result.errorType || ''} ${result.errorMessage || ''}`.trim();
+    const error =
+      `${result.errorType || ''} ${result.errorMessage || ''}`.trim();
     expect(error).toBe('');
     expect(result.success).toBeTruthy();
 

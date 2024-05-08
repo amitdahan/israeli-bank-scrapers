@@ -1,6 +1,9 @@
 import DiscountScraper from './discount';
 import {
-  maybeTestCompanyAPI, extendAsyncTimeout, getTestsConfig, exportTransactions,
+  maybeTestCompanyAPI,
+  extendAsyncTimeout,
+  getTestsConfig,
+  exportTransactions,
 } from '../tests/tests-utils';
 import { SCRAPERS } from '../definitions';
 import { LoginResults } from './base-scraper-with-browser';
@@ -20,7 +23,10 @@ describe('Discount legacy scraper', () => {
     expect(SCRAPERS.discount.loginFields).toContain('num');
   });
 
-  maybeTestCompanyAPI(COMPANY_ID, (config) => config.companyAPI.invalidPassword)('should fail on invalid user/password"', async () => {
+  maybeTestCompanyAPI(
+    COMPANY_ID,
+    (config) => config.companyAPI.invalidPassword,
+  )('should fail on invalid user/password"', async () => {
     const options = {
       ...testsConfig.options,
       companyId: COMPANY_ID,
@@ -28,7 +34,11 @@ describe('Discount legacy scraper', () => {
 
     const scraper = new DiscountScraper(options);
 
-    const result = await scraper.scrape({ id: 'e10s12', password: '3f3ss3d', num: '1234' });
+    const result = await scraper.scrape({
+      id: 'e10s12',
+      password: '3f3ss3d',
+      num: '1234',
+    });
 
     expect(result).toBeDefined();
     expect(result.success).toBeFalsy();
@@ -44,7 +54,8 @@ describe('Discount legacy scraper', () => {
     const scraper = new DiscountScraper(options);
     const result = await scraper.scrape(testsConfig.credentials.discount);
     expect(result).toBeDefined();
-    const error = `${result.errorType || ''} ${result.errorMessage || ''}`.trim();
+    const error =
+      `${result.errorType || ''} ${result.errorMessage || ''}`.trim();
     expect(error).toBe('');
     expect(result.success).toBeTruthy();
 

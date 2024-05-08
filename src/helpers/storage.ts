@@ -1,6 +1,9 @@
 import { Page } from 'puppeteer';
 
-export async function getFromSessionStorage<T>(page: Page, key: string): Promise<T | null> {
+export async function getFromSessionStorage<T>(
+  page: Page,
+  key: string,
+): Promise<T | null> {
   const strData = await page.evaluate((k: string) => {
     return sessionStorage.getItem(k);
   }, key);
