@@ -229,7 +229,13 @@ class MizrahiScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> 
       return {
         success: false,
         errorType: ScraperErrorTypes.Generic,
-        errorMessage: e.message,
+        errorMessage:
+          e &&
+          typeof e === 'object' &&
+          'message' in e &&
+          typeof e.message === 'string'
+            ? e.message
+            : String(e),
       };
     }
   }
