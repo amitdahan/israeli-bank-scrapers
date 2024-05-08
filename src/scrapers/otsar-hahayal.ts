@@ -1,6 +1,10 @@
 import moment, { Moment } from 'moment';
 import { Page } from 'puppeteer';
-import { BaseScraperWithBrowser, LoginResults, PossibleLoginResults } from './base-scraper-with-browser';
+import {
+  BaseScraperWithBrowser,
+  LoginResults,
+  PossibleLoginResults,
+} from './base-scraper-with-browser';
 import { waitForNavigation } from '../helpers/navigation';
 import {
   fillInput,
@@ -10,7 +14,11 @@ import {
   elementPresentOnPage,
 } from '../helpers/elements-interactions';
 import { SHEKEL_CURRENCY, SHEKEL_CURRENCY_SYMBOL } from '../constants';
-import { Transaction, TransactionStatuses, TransactionTypes } from '../transactions';
+import {
+  Transaction,
+  TransactionStatuses,
+  TransactionTypes,
+} from '../transactions';
 
 const BASE_URL = 'https://online.bankotsar.co.il';
 const LONG_DATE_FORMAT = 'DD/MM/YYYY';
@@ -30,7 +38,9 @@ interface ScrapedTransaction {
 function getPossibleLoginResults(page: Page) {
   const urls: PossibleLoginResults = {};
   urls[LoginResults.Success] = [`${BASE_URL}/wps/myportal/FibiMenu/Online`];
-  urls[LoginResults.InvalidPassword] = [() => elementPresentOnPage(page, '#validationMsg')];
+  urls[LoginResults.InvalidPassword] = [
+    () => elementPresentOnPage(page, '#validationMsg'),
+  ];
   // TODO: support change password
   /* urls[LOGIN_RESULT.CHANGE_PASSWORD] = [``]; */
   return urls;
@@ -72,18 +82,19 @@ function getAmountData(amountStr: string, hasCurrency = false) {
 function convertTransactions(txns: ScrapedTransaction[]): Transaction[] {
   return txns.map((txn) => {
     const dateFormat =
-        txn.date.length === 8 ?
-          DATE_FORMAT :
-          txn.date.length === 10 ?
-            LONG_DATE_FORMAT :
-            null;
+      txn.date.length === 8
+        ? DATE_FORMAT
+        : txn.date.length === 10
+          ? LONG_DATE_FORMAT
+          : null;
     if (!dateFormat) {
       throw new Error('invalid date format');
     }
     const txnDate = moment(txn.date, dateFormat).toISOString();
     const credit = getAmountData(txn.credit || '').amount;
     const debit = getAmountData(txn.debit || '').amount;
-    const amount = (Number.isNaN(credit) ? 0 : credit) - (Number.isNaN(debit) ? 0 : debit);
+    const amount =
+      (Number.isNaN(credit) ? 0 : credit) - (Number.isNaN(debit) ? 0 : debit);
 
     const result: Transaction = {
       type: TransactionTypes.Normal,
@@ -103,17 +114,22 @@ function convertTransactions(txns: ScrapedTransaction[]): Transaction[] {
 }
 
 async function parseTransactionPage(page: Page): Promise<ScrapedTransaction[]> {
-  const tdsValues = await pageEvalAll(page, '#dataTable077 tbody tr', [], (trs) => {
-    return (trs).map((el) => ({
-      date: (el.querySelector('.date') as HTMLElement).innerText,
-      // reference and description have vice-versa class name
-      description: (el.querySelector('.reference') as HTMLElement).innerText,
-      reference: (el.querySelector('.details') as HTMLElement).innerText,
-      credit: (el.querySelector('.credit') as HTMLElement).innerText,
-      debit: (el.querySelector('.debit') as HTMLElement).innerText,
-      balance: (el.querySelector('.balance') as HTMLElement).innerText,
-    }));
-  });
+  const tdsValues = await pageEvalAll(
+    page,
+    '#dataTable077 tbody tr',
+    [],
+    (trs) => {
+      return trs.map((el) => ({
+        date: (el.querySelector('.date') as HTMLElement).innerText,
+        // reference and description have vice-versa class name
+        description: (el.querySelector('.reference') as HTMLElement).innerText,
+        reference: (el.querySelector('.details') as HTMLElement).innerText,
+        credit: (el.querySelector('.credit') as HTMLElement).innerText,
+        debit: (el.querySelector('.debit') as HTMLElement).innerText,
+        balance: (el.querySelector('.balance') as HTMLElement).innerText,
+      }));
+    },
+  );
 
   return tdsValues;
 }
@@ -146,11 +162,7 @@ async function fetchTransactionsForAccount(page: Page, startDate: Moment) {
   const accountNumber = `14-${branchNum}-${accountNmbr}`;
   // Search for relavant transaction from startDate
   await clickButton(page, '#tabHeader4');
-  await fillInput(
-    page,
-    'input#fromDate',
-    startDate.format('DD/MM/YYYY'),
-  );
+  await fillInput(page, 'input#fromDate', startDate.format('DD/MM/YYYY'));
 
   await clickButton(page, '#fibi_tab_dates .fibi_btn:nth-child(2)');
   await waitForNavigation(page);
@@ -197,7 +209,7 @@ async function waitForPostLogin(page: Page) {
   ]);
 }
 
-type ScraperSpecificCredentials = { username: string, password: string };
+type ScraperSpecificCredentials = { username: string; password: string };
 
 class OtsarHahayalScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> {
   getLoginOptions(credentials: ScraperSpecificCredentials) {

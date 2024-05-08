@@ -1,19 +1,22 @@
 const presets = [
   [
-    "@babel/preset-env",
+    '@babel/preset-env',
     {
       targets: {
-        node: "8",
+        node: '8',
       },
-      useBuiltIns: "usage",
-      corejs: "3",
+      useBuiltIns: 'usage',
+      corejs: '3',
     },
   ],
-  "@babel/preset-typescript",
+  '@babel/preset-typescript',
 ];
 
 module.exports = {
   presets,
-  ignore: process.env.BABEL_ENV === "test" ? [] : ["**/*.test.(js,ts)", "tests/**/*", "src/tests/**/*"],
-  plugins: ["@babel/plugin-proposal-class-properties"],
+  ignore:
+    process.env.BABEL_ENV === 'test'
+      ? []
+      : ['**/*.test.(js,ts)', 'tests/**/*', 'src/tests/**/*'],
+  plugins: ['@babel/plugin-proposal-class-properties'],
 };

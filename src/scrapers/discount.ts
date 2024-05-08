@@ -1,12 +1,18 @@
 import _ from 'lodash';
 import moment from 'moment';
 import { Page } from 'puppeteer';
-import { BaseScraperWithBrowser, LoginResults, PossibleLoginResults } from './base-scraper-with-browser';
+import {
+  BaseScraperWithBrowser,
+  LoginResults,
+  PossibleLoginResults,
+} from './base-scraper-with-browser';
 import { waitUntilElementFound } from '../helpers/elements-interactions';
 import { waitForNavigation } from '../helpers/navigation';
 import { fetchGetWithinPage } from '../helpers/fetch';
 import {
-  Transaction, TransactionStatuses, TransactionTypes,
+  Transaction,
+  TransactionStatuses,
+  TransactionTypes,
 } from '../transactions';
 import { ScraperErrorTypes } from './errors';
 import { ScraperScrapingResult, ScraperOptions } from './interface';
@@ -40,7 +46,10 @@ interface ScrapedTransactionData {
   };
 }
 
-function convertTransactions(txns: ScrapedTransaction[], txnStatus: TransactionStatuses): Transaction[] {
+function convertTransactions(
+  txns: ScrapedTransaction[],
+  txnStatus: TransactionStatuses,
+): Transaction[] {
   if (!txns) {
     return [];
   }
@@ -59,12 +68,17 @@ function convertTransactions(txns: ScrapedTransaction[], txnStatus: TransactionS
   });
 }
 
-
-async function fetchAccountData(page: Page, options: ScraperOptions): Promise<ScraperScrapingResult> {
+async function fetchAccountData(
+  page: Page,
+  options: ScraperOptions,
+): Promise<ScraperScrapingResult> {
   const apiSiteUrl = `${BASE_URL}/Titan/gatewayAPI`;
 
   const accountDataUrl = `${apiSiteUrl}/userAccountsData`;
-  const accountInfo = await fetchGetWithinPage<ScrapedAccountData>(page, accountDataUrl);
+  const accountInfo = await fetchGetWithinPage<ScrapedAccountData>(
+    page,
+    accountDataUrl,
+  );
 
   if (!accountInfo) {
     return {
@@ -81,13 +95,22 @@ async function fetchAccountData(page: Page, options: ScraperOptions): Promise<Sc
 
   const startDateStr = startMoment.format(DATE_FORMAT);
   const txnsUrl = `${apiSiteUrl}/lastTransactions/${accountNumber}/Date?IsCategoryDescCode=True&IsTransactionDetails=True&IsEventNames=True&IsFutureTransactionFlag=True&FromDate=${startDateStr}`;
-  const txnsResult = await fetchGetWithinPage<ScrapedTransactionData>(page, txnsUrl);
-  if (!txnsResult || txnsResult.Error ||
-    !txnsResult.CurrentAccountLastTransactions) {
+  const txnsResult = await fetchGetWithinPage<ScrapedTransactionData>(
+    page,
+    txnsUrl,
+  );
+  if (
+    !txnsResult ||
+    txnsResult.Error ||
+    !txnsResult.CurrentAccountLastTransactions
+  ) {
     return {
       success: false,
       errorType: ScraperErrorTypes.Generic,
-      errorMessage: txnsResult && txnsResult.Error ? txnsResult.Error.MsgText : 'unknown error',
+      errorMessage:
+        txnsResult && txnsResult.Error
+          ? txnsResult.Error.MsgText
+          : 'unknown error',
     };
   }
 
@@ -95,16 +118,26 @@ async function fetchAccountData(page: Page, options: ScraperOptions): Promise<Sc
     txnsResult.CurrentAccountLastTransactions.OperationEntry,
     TransactionStatuses.Completed,
   );
-  const rawFutureTxns = _.get(txnsResult, 'CurrentAccountLastTransactions.FutureTransactionsBlock.FutureTransactionEntry');
-  const pendingTxns = convertTransactions(rawFutureTxns, TransactionStatuses.Pending);
+  const rawFutureTxns = _.get(
+    txnsResult,
+    'CurrentAccountLastTransactions.FutureTransactionsBlock.FutureTransactionEntry',
+  );
+  const pendingTxns = convertTransactions(
+    rawFutureTxns,
+    TransactionStatuses.Pending,
+  );
 
   const accountData = {
     success: true,
-    accounts: [{
-      accountNumber,
-      balance: txnsResult.CurrentAccountLastTransactions.CurrentAccountInfo.AccountBalance,
-      txns: [...completedTxns, ...pendingTxns],
-    }],
+    accounts: [
+      {
+        accountNumber,
+        balance:
+          txnsResult.CurrentAccountLastTransactions.CurrentAccountInfo
+            .AccountBalance,
+        txns: [...completedTxns, ...pendingTxns],
+      },
+    ],
   };
 
   return accountData;
@@ -120,9 +153,15 @@ async function navigateOrErrorLabel(page: Page) {
 
 function getPossibleLoginResults(): PossibleLoginResults {
   const urls: PossibleLoginResults = {};
-  urls[LoginResults.Success] = [`${BASE_URL}/apollo/retail/#/MY_ACCOUNT_HOMEPAGE`];
-  urls[LoginResults.InvalidPassword] = [`${BASE_URL}/apollo/core/templates/lobby/masterPage.html#/LOGIN_PAGE`];
-  urls[LoginResults.ChangePassword] = [`${BASE_URL}/apollo/core/templates/lobby/masterPage.html#/PWD_RENEW`];
+  urls[LoginResults.Success] = [
+    `${BASE_URL}/apollo/retail/#/MY_ACCOUNT_HOMEPAGE`,
+  ];
+  urls[LoginResults.InvalidPassword] = [
+    `${BASE_URL}/apollo/core/templates/lobby/masterPage.html#/LOGIN_PAGE`,
+  ];
+  urls[LoginResults.ChangePassword] = [
+    `${BASE_URL}/apollo/core/templates/lobby/masterPage.html#/PWD_RENEW`,
+  ];
   return urls;
 }
 
@@ -134,7 +173,7 @@ function createLoginFields(credentials: ScraperSpecificCredentials) {
   ];
 }
 
-type ScraperSpecificCredentials = { id: string, password: string, num: string };
+type ScraperSpecificCredentials = { id: string; password: string; num: string };
 
 class DiscountScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> {
   getLoginOptions(credentials: ScraperSpecificCredentials) {

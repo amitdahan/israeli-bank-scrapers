@@ -1,18 +1,27 @@
 import moment from 'moment';
 import { getDebug } from '../helpers/debug';
 import { fetchPostWithinPage } from '../helpers/fetch';
-import { Transaction, TransactionStatuses, TransactionTypes } from '../transactions';
-import { BaseScraperWithBrowser, LoginOptions, LoginResults } from './base-scraper-with-browser';
+import {
+  Transaction,
+  TransactionStatuses,
+  TransactionTypes,
+} from '../transactions';
+import {
+  BaseScraperWithBrowser,
+  LoginOptions,
+  LoginResults,
+} from './base-scraper-with-browser';
 import { ScraperScrapingResult } from './interface';
 import { waitUntilElementFound } from '../helpers/elements-interactions';
 
 const BASE_URL = 'https://www.behatsdaa.org.il';
 const LOGIN_URL = `${BASE_URL}/login`;
-const PURCHASE_HISTORY_URL = 'https://back.behatsdaa.org.il/api/purchases/purchaseHistory';
+const PURCHASE_HISTORY_URL =
+  'https://back.behatsdaa.org.il/api/purchases/purchaseHistory';
 
 const debug = getDebug('behatsdaa');
 
-type ScraperSpecificCredentials = { id: string, password: string };
+type ScraperSpecificCredentials = { id: string; password: string };
 
 type Variant = {
   name: string;
@@ -50,7 +59,9 @@ function variantToTransaction(variant: Variant): Transaction {
 }
 
 class BehatsdaaScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> {
-  public getLoginOptions(credentials: ScraperSpecificCredentials): LoginOptions {
+  public getLoginOptions(
+    credentials: ScraperSpecificCredentials,
+  ): LoginOptions {
     return {
       loginUrl: LOGIN_URL,
       fields: [
@@ -82,7 +93,9 @@ class BehatsdaaScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials
   }
 
   async fetchData(): Promise<ScraperScrapingResult> {
-    const token = await this.page.evaluate(() => window.localStorage.getItem('userToken'));
+    const token = await this.page.evaluate(() =>
+      window.localStorage.getItem('userToken'),
+    );
     if (!token) {
       debug('Token not found in local storage');
       return {
@@ -99,16 +112,24 @@ class BehatsdaaScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials
 
     debug('Fetching data');
 
-    const res = await fetchPostWithinPage<PurchaseHistoryResponse>(this.page, PURCHASE_HISTORY_URL, body, {
-      authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      organizationid: '20',
-    });
+    const res = await fetchPostWithinPage<PurchaseHistoryResponse>(
+      this.page,
+      PURCHASE_HISTORY_URL,
+      body,
+      {
+        authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        organizationid: '20',
+      },
+    );
 
     debug('Data fetched');
 
     if (res?.errorDescription || res?.data?.errorDescription) {
-      debug('Error fetching data', res.errorDescription || res.data?.errorDescription);
+      debug(
+        'Error fetching data',
+        res.errorDescription || res.data?.errorDescription,
+      );
       return { success: false, errorMessage: res.errorDescription };
     }
 
@@ -120,10 +141,12 @@ class BehatsdaaScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials
     debug('Data fetched successfully');
     return {
       success: true,
-      accounts: [{
-        accountNumber: res.data.memberId,
-        txns: res.data.variants.map(variantToTransaction),
-      }],
+      accounts: [
+        {
+          accountNumber: res.data.memberId,
+          txns: res.data.variants.map(variantToTransaction),
+        },
+      ],
     };
   }
 }

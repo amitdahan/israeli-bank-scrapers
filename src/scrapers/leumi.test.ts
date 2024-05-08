@@ -1,6 +1,9 @@
 import LeumiScraper from './leumi';
 import {
-  maybeTestCompanyAPI, extendAsyncTimeout, getTestsConfig, exportTransactions,
+  maybeTestCompanyAPI,
+  extendAsyncTimeout,
+  getTestsConfig,
+  exportTransactions,
 } from '../tests/tests-utils';
 import { SCRAPERS } from '../definitions';
 import { LoginResults } from './base-scraper-with-browser';
@@ -19,7 +22,10 @@ describe('Leumi legacy scraper', () => {
     expect(SCRAPERS.leumi.loginFields).toContain('password');
   });
 
-  maybeTestCompanyAPI(COMPANY_ID, (config) => config.companyAPI.invalidPassword)('should fail on invalid user/password"', async () => {
+  maybeTestCompanyAPI(
+    COMPANY_ID,
+    (config) => config.companyAPI.invalidPassword,
+  )('should fail on invalid user/password"', async () => {
     const options = {
       ...testsConfig.options,
       companyId: COMPANY_ID,
@@ -27,7 +33,10 @@ describe('Leumi legacy scraper', () => {
 
     const scraper = new LeumiScraper(options);
 
-    const result = await scraper.scrape({ username: 'e10s12', password: '3f3ss3d' });
+    const result = await scraper.scrape({
+      username: 'e10s12',
+      password: '3f3ss3d',
+    });
 
     expect(result).toBeDefined();
     expect(result.success).toBeFalsy();
@@ -43,7 +52,8 @@ describe('Leumi legacy scraper', () => {
     const scraper = new LeumiScraper(options);
     const result = await scraper.scrape(testsConfig.credentials.leumi);
     expect(result).toBeDefined();
-    const error = `${result.errorType || ''} ${result.errorMessage || ''}`.trim();
+    const error =
+      `${result.errorType || ''} ${result.errorMessage || ''}`.trim();
     expect(error).toBe('');
     expect(result.success).toBeTruthy();
 

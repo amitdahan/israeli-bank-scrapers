@@ -21,7 +21,7 @@ export enum CompanyTypes {
   yahav = 'yahav',
   behatsdaa = 'behatsdaa',
   beyahadBishvilha = 'beyahadBishvilha',
-  oneZero = 'oneZero'
+  oneZero = 'oneZero',
 }
 
 export const SCRAPERS = {
@@ -29,7 +29,8 @@ export const SCRAPERS = {
     name: 'Bank Hapoalim',
     loginFields: ['userCode', PASSWORD_FIELD],
   },
-  [CompanyTypes.hapoalimBeOnline]: { // TODO remove in Major version
+  [CompanyTypes.hapoalimBeOnline]: {
+    // TODO remove in Major version
     name: 'Bank Hapoalim',
     loginFields: ['userCode', PASSWORD_FIELD],
   },
@@ -53,7 +54,8 @@ export const SCRAPERS = {
     name: 'Bank Otsar Hahayal',
     loginFields: ['username', PASSWORD_FIELD],
   },
-  [CompanyTypes.leumiCard]: { // TODO remove in Major version
+  [CompanyTypes.leumiCard]: {
+    // TODO remove in Major version
     name: 'Leumi Card',
     loginFields: ['username', PASSWORD_FIELD],
   },
@@ -95,7 +97,13 @@ export const SCRAPERS = {
   },
   [CompanyTypes.oneZero]: {
     name: 'One Zero',
-    loginFields: ['email', PASSWORD_FIELD, 'otpCodeRetriever', 'phoneNumber', 'otpLongTermToken'],
+    loginFields: [
+      'email',
+      PASSWORD_FIELD,
+      'otpCodeRetriever',
+      'phoneNumber',
+      'otpLongTermToken',
+    ],
   },
   [CompanyTypes.behatsdaa]: {
     name: 'Behatsdaa',

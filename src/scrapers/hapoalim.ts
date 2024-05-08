@@ -2,12 +2,19 @@ import moment from 'moment';
 import uuid4 from 'uuid/v4';
 
 import { Page } from 'puppeteer';
-import { BaseScraperWithBrowser, LoginResults, PossibleLoginResults } from './base-scraper-with-browser';
+import {
+  BaseScraperWithBrowser,
+  LoginResults,
+  PossibleLoginResults,
+} from './base-scraper-with-browser';
 import { waitForRedirect } from '../helpers/navigation';
 import { waitUntil } from '../helpers/waiting';
 import { fetchGetWithinPage, fetchPostWithinPage } from '../helpers/fetch';
 import {
-  TransactionsAccount, Transaction, TransactionStatuses, TransactionTypes,
+  TransactionsAccount,
+  Transaction,
+  TransactionStatuses,
+  TransactionTypes,
 } from '../transactions';
 import { getDebug } from '../helpers/debug';
 import { ScraperOptions } from './interface';
@@ -72,12 +79,8 @@ function convertTransactions(txns: ScrapedTransaction[]): Transaction[] {
 
     let memo = '';
     if (txn.beneficiaryDetailsData) {
-      const {
-        partyHeadline,
-        partyName,
-        messageHeadline,
-        messageDetail,
-      } = txn.beneficiaryDetailsData;
+      const { partyHeadline, partyName, messageHeadline, messageDetail } =
+        txn.beneficiaryDetailsData;
       const memoLines: string[] = [];
       if (partyHeadline) {
         memoLines.push(partyHeadline);
@@ -109,7 +112,10 @@ function convertTransactions(txns: ScrapedTransaction[]): Transaction[] {
       originalCurrency: 'ILS',
       chargedAmount: isOutbound ? -txn.eventAmount : txn.eventAmount,
       description: txn.activityDescription || '',
-      status: txn.serialNumber === 0 ? TransactionStatuses.Pending : TransactionStatuses.Completed,
+      status:
+        txn.serialNumber === 0
+          ? TransactionStatuses.Pending
+          : TransactionStatuses.Completed,
       memo,
     };
 
@@ -129,7 +135,11 @@ async function getRestContext(page: Page) {
   return result.slice(1);
 }
 
-async function fetchPoalimXSRFWithinPage(page: Page, url: string, pageUuid: string): Promise<FetchedAccountTransactionsData | null> {
+async function fetchPoalimXSRFWithinPage(
+  page: Page,
+  url: string,
+  pageUuid: string,
+): Promise<FetchedAccountTransactionsData | null> {
   const cookies = await page.cookies();
   const XSRFCookie = cookies.find((cookie) => cookie.name === 'XSRF-TOKEN');
   const headers: Record<string, any> = {};
@@ -139,54 +149,91 @@ async function fetchPoalimXSRFWithinPage(page: Page, url: string, pageUuid: stri
   headers.pageUuid = pageUuid;
   headers.uuid = uuid4();
   headers['Content-Type'] = 'application/json;charset=UTF-8';
-  return fetchPostWithinPage<FetchedAccountTransactionsData>(page, url, [], headers);
+  return fetchPostWithinPage<FetchedAccountTransactionsData>(
+    page,
+    url,
+    [],
+    headers,
+  );
 }
 
-async function getExtraScrap(txnsResult: FetchedAccountTransactionsData, baseUrl: string, page: Page, accountNumber: string): Promise<FetchedAccountTransactionsData> {
-  const promises = txnsResult.transactions.map(async (transaction: ScrapedTransaction): Promise<ScrapedTransaction> => {
-    const { pfmDetails, serialNumber } = transaction;
-    if (serialNumber !== 0) {
-      const url = `${baseUrl}${pfmDetails}&accountId=${accountNumber}&lang=he`;
-      const extraTransactionDetails = await fetchGetWithinPage<ScrapedPfmTransaction[]>(page, url) || [];
-      if (extraTransactionDetails && extraTransactionDetails.length) {
-        const { transactionNumber } = extraTransactionDetails[0];
-        if (transactionNumber) {
-          return { ...transaction, referenceNumber: transactionNumber };
+async function getExtraScrap(
+  txnsResult: FetchedAccountTransactionsData,
+  baseUrl: string,
+  page: Page,
+  accountNumber: string,
+): Promise<FetchedAccountTransactionsData> {
+  const promises = txnsResult.transactions.map(
+    async (transaction: ScrapedTransaction): Promise<ScrapedTransaction> => {
+      const { pfmDetails, serialNumber } = transaction;
+      if (serialNumber !== 0) {
+        const url = `${baseUrl}${pfmDetails}&accountId=${accountNumber}&lang=he`;
+        const extraTransactionDetails =
+          (await fetchGetWithinPage<ScrapedPfmTransaction[]>(page, url)) || [];
+        if (extraTransactionDetails && extraTransactionDetails.length) {
+          const { transactionNumber } = extraTransactionDetails[0];
+          if (transactionNumber) {
+            return { ...transaction, referenceNumber: transactionNumber };
+          }
         }
       }
-    }
-    return transaction;
-  });
+      return transaction;
+    },
+  );
   const res = await Promise.all(promises);
   return { transactions: res };
 }
 
-async function getAccountTransactions(baseUrl: string, apiSiteUrl: string, page: Page, accountNumber: string, startDate: string, endDate: string, additionalTransactionInformation = false) {
+async function getAccountTransactions(
+  baseUrl: string,
+  apiSiteUrl: string,
+  page: Page,
+  accountNumber: string,
+  startDate: string,
+  endDate: string,
+  additionalTransactionInformation = false,
+) {
   const txnsUrl = `${apiSiteUrl}/current-account/transactions?accountId=${accountNumber}&numItemsPerPage=1000&retrievalEndDate=${endDate}&retrievalStartDate=${startDate}&sortCode=1`;
-  const txnsResult = await fetchPoalimXSRFWithinPage(page, txnsUrl, '/current-account/transactions');
+  const txnsResult = await fetchPoalimXSRFWithinPage(
+    page,
+    txnsUrl,
+    '/current-account/transactions',
+  );
 
   const finalResult =
-    additionalTransactionInformation && txnsResult?.transactions.length ?
-      await getExtraScrap(txnsResult, baseUrl, page, accountNumber) :
-      txnsResult;
+    additionalTransactionInformation && txnsResult?.transactions.length
+      ? await getExtraScrap(txnsResult, baseUrl, page, accountNumber)
+      : txnsResult;
 
   return convertTransactions(finalResult?.transactions ?? []);
 }
 
-async function getAccountBalance(apiSiteUrl: string, page: Page, accountNumber: string) {
+async function getAccountBalance(
+  apiSiteUrl: string,
+  page: Page,
+  accountNumber: string,
+) {
   const balanceAndCreditLimitUrl = `${apiSiteUrl}/current-account/composite/balanceAndCreditLimit?accountId=${accountNumber}&view=details&lang=he`;
-  const balanceAndCreditLimit = await fetchGetWithinPage<BalanceAndCreditLimit>(page, balanceAndCreditLimitUrl);
+  const balanceAndCreditLimit = await fetchGetWithinPage<BalanceAndCreditLimit>(
+    page,
+    balanceAndCreditLimitUrl,
+  );
 
   return balanceAndCreditLimit?.currentBalance;
 }
 
-async function fetchAccountData(page: Page, baseUrl: string, options: ScraperOptions) {
+async function fetchAccountData(
+  page: Page,
+  baseUrl: string,
+  options: ScraperOptions,
+) {
   const restContext = await getRestContext(page);
   const apiSiteUrl = `${baseUrl}/${restContext}`;
   const accountDataUrl = `${baseUrl}/ServerServices/general/accounts`;
 
   debug('fetching accounts data');
-  const accountsInfo = await fetchGetWithinPage<FetchedAccountData>(page, accountDataUrl) || [];
+  const accountsInfo =
+    (await fetchGetWithinPage<FetchedAccountData>(page, accountDataUrl)) || [];
   debug('got %d accounts, fetching txns and balance', accountsInfo.length);
 
   const defaultStartMoment = moment().subtract(1, 'years').add(1, 'day');
@@ -240,8 +287,11 @@ function getPossibleLoginResults(baseUrl: string) {
   urls[LoginResults.Success] = [
     `${baseUrl}/portalserver/HomePage`,
     `${baseUrl}/ng-portals-bt/rb/he/homepage`,
-    `${baseUrl}/ng-portals/rb/he/homepage`];
-  urls[LoginResults.InvalidPassword] = [`${baseUrl}/AUTHENTICATE/LOGON?flow=AUTHENTICATE&state=LOGON&errorcode=1.6&callme=false`];
+    `${baseUrl}/ng-portals/rb/he/homepage`,
+  ];
+  urls[LoginResults.InvalidPassword] = [
+    `${baseUrl}/AUTHENTICATE/LOGON?flow=AUTHENTICATE&state=LOGON&errorcode=1.6&callme=false`,
+  ];
   urls[LoginResults.ChangePassword] = [
     `${baseUrl}/MCP/START?flow=MCP&state=START&expiredDate=null`,
     /\/ABOUTTOEXPIRE\/START/i,
@@ -256,7 +306,7 @@ function createLoginFields(credentials: ScraperSpecificCredentials) {
   ];
 }
 
-type ScraperSpecificCredentials = { userCode: string, password: string };
+type ScraperSpecificCredentials = { userCode: string; password: string };
 
 class HapoalimScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> {
   // eslint-disable-next-line class-methods-use-this

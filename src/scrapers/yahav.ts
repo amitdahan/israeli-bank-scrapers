@@ -2,13 +2,18 @@ import moment, { Moment } from 'moment';
 import { Page } from 'puppeteer';
 import { SHEKEL_CURRENCY } from '../constants';
 import {
-  clickButton, elementPresentOnPage,
-  pageEvalAll, waitUntilElementDisappear, waitUntilElementFound,
+  clickButton,
+  elementPresentOnPage,
+  pageEvalAll,
+  waitUntilElementDisappear,
+  waitUntilElementFound,
 } from '../helpers/elements-interactions';
 import { waitForNavigation } from '../helpers/navigation';
 import {
-  Transaction, TransactionsAccount,
-  TransactionStatuses, TransactionTypes,
+  Transaction,
+  TransactionsAccount,
+  TransactionStatuses,
+  TransactionTypes,
 } from '../transactions';
 import {
   BaseScraperWithBrowser,
@@ -44,24 +49,29 @@ interface ScrapedTransaction {
 function getPossibleLoginResults(page: Page): PossibleLoginResults {
   // checkout file `base-scraper-with-browser.ts` for available result types
   const urls: PossibleLoginResults = {};
-  urls[LoginResults.Success] = [
-    `${BASE_WELCOME_URL}`,
+  urls[LoginResults.Success] = [`${BASE_WELCOME_URL}`];
+  urls[LoginResults.InvalidPassword] = [
+    async () => {
+      return elementPresentOnPage(page, `${INVALID_DETAILS_SELECTOR}`);
+    },
   ];
-  urls[LoginResults.InvalidPassword] = [async () => {
-    return elementPresentOnPage(page, `${INVALID_DETAILS_SELECTOR}`);
-  }];
 
-  urls[LoginResults.ChangePassword] = [async () => {
-    return elementPresentOnPage(page, `${CHANGE_PASSWORD_OLD_PASS}`);
-  }];
+  urls[LoginResults.ChangePassword] = [
+    async () => {
+      return elementPresentOnPage(page, `${CHANGE_PASSWORD_OLD_PASS}`);
+    },
+  ];
 
   return urls;
 }
 
 async function getAccountID(page: Page) {
-  const selectedSnifAccount = await page.$eval(`${ACCOUNT_ID_SELECTOR}`, (option) => {
-    return (option as HTMLElement).innerText;
-  });
+  const selectedSnifAccount = await page.$eval(
+    `${ACCOUNT_ID_SELECTOR}`,
+    (option) => {
+      return (option as HTMLElement).innerText;
+    },
+  );
 
   return selectedSnifAccount;
 }
@@ -74,10 +84,12 @@ function getAmountData(amountStr: string) {
 function getTxnAmount(txn: ScrapedTransaction) {
   const credit = getAmountData(txn.credit);
   const debit = getAmountData(txn.debit);
-  return (Number.isNaN(credit) ? 0 : credit) - (Number.isNaN(debit) ? 0 : debit);
+  return (
+    (Number.isNaN(credit) ? 0 : credit) - (Number.isNaN(debit) ? 0 : debit)
+  );
 }
 
-type TransactionsTr = { id: string, innerDivs: string[] };
+type TransactionsTr = { id: string; innerDivs: string[] };
 
 function convertTransactions(txns: ScrapedTransaction[]): Transaction[] {
   return txns.map((txn) => {
@@ -98,7 +110,10 @@ function convertTransactions(txns: ScrapedTransaction[]): Transaction[] {
   });
 }
 
-function handleTransactionRow(txns: ScrapedTransaction[], txnRow: TransactionsTr) {
+function handleTransactionRow(
+  txns: ScrapedTransaction[],
+  txnRow: TransactionsTr,
+) {
   const div = txnRow.innerDivs;
 
   // Remove anything except digits.
@@ -122,12 +137,19 @@ async function getAccountTransactions(page: Page): Promise<Transaction[]> {
   await waitUntilElementFound(page, '.under-line-txn-table-header', true);
 
   const txns: ScrapedTransaction[] = [];
-  const transactionsDivs = await pageEvalAll<TransactionsTr[]>(page, '.list-item-holder .entire-content-ctr', [], (divs) => {
-    return (divs as HTMLElement[]).map((div) => ({
-      id: (div).getAttribute('id') || '',
-      innerDivs: Array.from(div.getElementsByTagName('div')).map((div) => (div as HTMLElement).innerText),
-    }));
-  });
+  const transactionsDivs = await pageEvalAll<TransactionsTr[]>(
+    page,
+    '.list-item-holder .entire-content-ctr',
+    [],
+    (divs) => {
+      return (divs as HTMLElement[]).map((div) => ({
+        id: div.getAttribute('id') || '',
+        innerDivs: Array.from(div.getElementsByTagName('div')).map(
+          (div) => (div as HTMLElement).innerText,
+        ),
+      }));
+    },
+  );
 
   for (const txnRow of transactionsDivs) {
     handleTransactionRow(txns, txnRow);
@@ -144,7 +166,8 @@ async function searchByDates(page: Page, startDate: Moment) {
   const startDateYear = startDate.format('Y');
 
   // Open the calendar date picker
-  const dateFromPick = 'div.date-options-cell:nth-child(7) > date-picker:nth-child(1) > div:nth-child(1) > span:nth-child(2)';
+  const dateFromPick =
+    'div.date-options-cell:nth-child(7) > date-picker:nth-child(1) > div:nth-child(1) > span:nth-child(2)';
   await waitUntilElementFound(page, dateFromPick, true);
   await clickButton(page, dateFromPick);
 
@@ -198,8 +221,11 @@ async function searchByDates(page: Page, startDate: Moment) {
   }
 }
 
-
-async function fetchAccountData(page: Page, startDate: Moment, accountID: string): Promise<TransactionsAccount> {
+async function fetchAccountData(
+  page: Page,
+  startDate: Moment,
+  accountID: string,
+): Promise<TransactionsAccount> {
   await waitUntilElementDisappear(page, '.loading-bar-spinner');
   await searchByDates(page, startDate);
   await waitUntilElementDisappear(page, '.loading-bar-spinner');
@@ -211,7 +237,10 @@ async function fetchAccountData(page: Page, startDate: Moment, accountID: string
   };
 }
 
-async function fetchAccounts(page: Page, startDate: Moment): Promise<TransactionsAccount[]> {
+async function fetchAccounts(
+  page: Page,
+  startDate: Moment,
+): Promise<TransactionsAccount[]> {
   const accounts: TransactionsAccount[] = [];
 
   // TODO: get more accounts. Not sure is supported.
@@ -233,20 +262,31 @@ async function redirectOrDialog(page: Page) {
   // Click on bank messages if any.
   await waitForNavigation(page);
   await waitUntilElementDisappear(page, '.loading-bar-spinner');
-  const hasMessage = await elementPresentOnPage(page, '.messaging-links-container');
+  const hasMessage = await elementPresentOnPage(
+    page,
+    '.messaging-links-container',
+  );
   if (hasMessage) {
     await clickButton(page, '.link-1');
   }
 
-  const promise1 = page.waitForSelector(ACCOUNT_DETAILS_SELECTOR, { timeout: 30000 });
-  const promise2 = page.waitForSelector(CHANGE_PASSWORD_OLD_PASS, { timeout: 30000 });
+  const promise1 = page.waitForSelector(ACCOUNT_DETAILS_SELECTOR, {
+    timeout: 30000,
+  });
+  const promise2 = page.waitForSelector(CHANGE_PASSWORD_OLD_PASS, {
+    timeout: 30000,
+  });
   const promises = [promise1, promise2];
 
   await Promise.race(promises);
   await waitUntilElementDisappear(page, '.loading-bar-spinner');
 }
 
-type ScraperSpecificCredentials = {username: string, password: string, nationalID: string};
+type ScraperSpecificCredentials = {
+  username: string;
+  password: string;
+  nationalID: string;
+};
 
 class YahavScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> {
   getLoginOptions(credentials: ScraperSpecificCredentials) {
@@ -268,7 +308,11 @@ class YahavScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> {
     // Goto statements page
     await waitUntilElementFound(this.page, ACCOUNT_DETAILS_SELECTOR, true);
     await clickButton(this.page, ACCOUNT_DETAILS_SELECTOR);
-    await waitUntilElementFound(this.page, '.statement-options .selected-item-top', true);
+    await waitUntilElementFound(
+      this.page,
+      '.statement-options .selected-item-top',
+      true,
+    );
 
     const defaultStartMoment = moment().subtract(3, 'months').add(1, 'day');
     const startDate = this.options.startDate || defaultStartMoment.toDate();

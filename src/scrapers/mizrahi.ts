@@ -2,14 +2,24 @@ import moment from 'moment';
 import { Frame, Page, Request } from 'puppeteer';
 import { SHEKEL_CURRENCY } from '../constants';
 import {
-  pageEvalAll, waitUntilElementDisappear, waitUntilElementFound, waitUntilIframeFound,
+  pageEvalAll,
+  waitUntilElementDisappear,
+  waitUntilElementFound,
+  waitUntilIframeFound,
 } from '../helpers/elements-interactions';
 import { fetchPostWithinPage } from '../helpers/fetch';
 import { waitForUrl } from '../helpers/navigation';
 import {
-  Transaction, TransactionsAccount, TransactionStatuses, TransactionTypes,
+  Transaction,
+  TransactionsAccount,
+  TransactionStatuses,
+  TransactionTypes,
 } from '../transactions';
-import { BaseScraperWithBrowser, LoginResults, PossibleLoginResults } from './base-scraper-with-browser';
+import {
+  BaseScraperWithBrowser,
+  LoginResults,
+  PossibleLoginResults,
+} from './base-scraper-with-browser';
 import { ScraperErrorTypes } from './errors';
 
 interface ScrapedTransaction {
@@ -38,7 +48,8 @@ interface ScrapedTransactionsResult {
 const BASE_WEBSITE_URL = 'https://www.mizrahi-tefahot.co.il';
 const LOGIN_URL = `${BASE_WEBSITE_URL}/login/index.html#/auth-page-he`;
 const BASE_APP_URL = 'https://mto.mizrahi-tefahot.co.il';
-const AFTER_LOGIN_BASE_URL = /https:\/\/mto\.mizrahi-tefahot\.co\.il\/OnlineApp\/.*/;
+const AFTER_LOGIN_BASE_URL =
+  /https:\/\/mto\.mizrahi-tefahot\.co\.il\/OnlineApp\/.*/;
 const OSH_PAGE = '/osh/legacy/legacy-Osh-Main';
 const TRANSACTIONS_PAGE = '/osh/legacy/root-main-osh-p428New';
 const TRANSACTIONS_REQUEST_URLS = [
@@ -47,21 +58,22 @@ const TRANSACTIONS_REQUEST_URLS = [
 ];
 const PENDING_TRANSACTIONS_PAGE = '/osh/legacy/legacy-Osh-p420';
 const PENDING_TRANSACTIONS_IFRAME = 'p420.aspx';
-const CHANGE_PASSWORD_URL = /https:\/\/www\.mizrahi-tefahot\.co\.il\/login\/index\.html#\/change-pass/;
+const CHANGE_PASSWORD_URL =
+  /https:\/\/www\.mizrahi-tefahot\.co\.il\/login\/index\.html#\/change-pass/;
 const DATE_FORMAT = 'DD/MM/YYYY';
 const MAX_ROWS_PER_REQUEST = 10000000000;
 
 const usernameSelector = '#emailDesktopHeb';
 const passwordSelector = '#passwordIDDesktopHEB';
 const submitButtonSelector = '.form-desktop button';
-const invalidPasswordSelector = 'a[href*="https://sc.mizrahi-tefahot.co.il/SCServices/SC/P010.aspx"]';
+const invalidPasswordSelector =
+  'a[href*="https://sc.mizrahi-tefahot.co.il/SCServices/SC/P010.aspx"]';
 const afterLoginSelector = '#dropdownBasic';
 const loginSpinnerSelector = 'div.ngx-overlay.loading-foreground';
 const accountDropDownItemSelector = '#AccountPicker .item';
 const pendingTrxIdentifierId = '#ctl00_ContentPlaceHolder2_panel1';
 const checkingAccountTabHebrewName = 'עובר ושב';
 const checkingAccountTabEnglishName = 'Checking Account';
-
 
 function createLoginFields(credentials: ScraperSpecificCredentials) {
   return [
@@ -82,7 +94,9 @@ async function isLoggedIn(options: { page?: Page | undefined } | undefined) {
 function getPossibleLoginResults(page: Page): PossibleLoginResults {
   return {
     [LoginResults.Success]: [AFTER_LOGIN_BASE_URL, isLoggedIn],
-    [LoginResults.InvalidPassword]: [async () => !!(await page.$(invalidPasswordSelector))],
+    [LoginResults.InvalidPassword]: [
+      async () => !!(await page.$(invalidPasswordSelector)),
+    ],
     [LoginResults.ChangePassword]: [CHANGE_PASSWORD_URL],
   };
 }
@@ -110,15 +124,18 @@ function createHeadersFromRequest(request: Request) {
   };
 }
 
-
 function convertTransactions(txns: ScrapedTransaction[]): Transaction[] {
   return txns.map((row) => {
-    const txnDate = moment(row.MC02PeulaTaaEZ, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS)
-      .toISOString();
+    const txnDate = moment(
+      row.MC02PeulaTaaEZ,
+      moment.HTML5_FMT.DATETIME_LOCAL_SECONDS,
+    ).toISOString();
 
     return {
       type: TransactionTypes.Normal,
-      identifier: row.MC02AsmahtaMekoritEZ ? parseInt(row.MC02AsmahtaMekoritEZ, 10) : undefined,
+      identifier: row.MC02AsmahtaMekoritEZ
+        ? parseInt(row.MC02AsmahtaMekoritEZ, 10)
+        : undefined,
       date: txnDate,
       processedDate: txnDate,
       originalAmount: row.MC02SchumEZ,
@@ -132,7 +149,12 @@ function convertTransactions(txns: ScrapedTransaction[]): Transaction[] {
 
 async function extractPendingTransactions(page: Frame): Promise<Transaction[]> {
   const pendingTxn = await pageEvalAll(page, 'tr.rgRow', [], (trs) => {
-    return trs.map((tr) => Array.from(tr.querySelectorAll('td'), (td: HTMLTableDataCellElement) => td.textContent || ''));
+    return trs.map((tr) =>
+      Array.from(
+        tr.querySelectorAll('td'),
+        (td: HTMLTableDataCellElement) => td.textContent || '',
+      ),
+    );
   });
 
   return pendingTxn.map((txn) => {
@@ -159,7 +181,7 @@ async function postLogin(page: Page) {
   ]);
 }
 
-type ScraperSpecificCredentials = { username: string, password: string };
+type ScraperSpecificCredentials = { username: string; password: string };
 
 class MizrahiScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> {
   getLoginOptions(credentials: ScraperSpecificCredentials) {
@@ -167,27 +189,36 @@ class MizrahiScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> 
       loginUrl: LOGIN_URL,
       fields: createLoginFields(credentials),
       submitButtonSelector,
-      checkReadiness: async () => waitUntilElementDisappear(this.page, loginSpinnerSelector),
+      checkReadiness: async () =>
+        waitUntilElementDisappear(this.page, loginSpinnerSelector),
       postAction: async () => postLogin(this.page),
       possibleResults: getPossibleLoginResults(this.page),
     };
   }
 
   async fetchData() {
-    await this.page.$eval('#dropdownBasic, .item', (el) => (el as HTMLElement).click());
+    await this.page.$eval('#dropdownBasic, .item', (el) =>
+      (el as HTMLElement).click(),
+    );
 
-    const numOfAccounts = (await this.page.$$(accountDropDownItemSelector)).length;
+    const numOfAccounts = (await this.page.$$(accountDropDownItemSelector))
+      .length;
 
     try {
       const results: TransactionsAccount[] = [];
 
       for (let i = 0; i < numOfAccounts; i += 1) {
         if (i > 0) {
-          await this.page.$eval('#dropdownBasic, .item', (el) => (el as HTMLElement).click());
+          await this.page.$eval('#dropdownBasic, .item', (el) =>
+            (el as HTMLElement).click(),
+          );
         }
 
-        await this.page.$eval(`${accountDropDownItemSelector}:nth-child(${i + 1})`, (el) => (el as HTMLElement).click());
-        results.push((await this.fetchAccount()));
+        await this.page.$eval(
+          `${accountDropDownItemSelector}:nth-child(${i + 1})`,
+          (el) => (el as HTMLElement).click(),
+        );
+        results.push(await this.fetchAccount());
       }
 
       return {
@@ -204,9 +235,15 @@ class MizrahiScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> 
   }
 
   private async getPendingTransactions(): Promise<Transaction[]> {
-    await this.page.$eval(`a[href*="${PENDING_TRANSACTIONS_PAGE}"]`, (el) => (el as HTMLElement).click());
-    const frame = await waitUntilIframeFound(this.page, (f) => f.url().includes(PENDING_TRANSACTIONS_IFRAME));
-    const isPending = await waitUntilElementFound(frame, pendingTrxIdentifierId).then(() => true).catch(() => false);
+    await this.page.$eval(`a[href*="${PENDING_TRANSACTIONS_PAGE}"]`, (el) =>
+      (el as HTMLElement).click(),
+    );
+    const frame = await waitUntilIframeFound(this.page, (f) =>
+      f.url().includes(PENDING_TRANSACTIONS_IFRAME),
+    );
+    const isPending = await waitUntilElementFound(frame, pendingTrxIdentifierId)
+      .then(() => true)
+      .catch(() => false);
     if (!isPending) {
       return [];
     }
@@ -216,33 +253,50 @@ class MizrahiScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> 
   }
 
   private async fetchAccount() {
-    await this.page.$eval(`a[href*="${OSH_PAGE}"]`, (el) => (el as HTMLElement).click());
+    await this.page.$eval(`a[href*="${OSH_PAGE}"]`, (el) =>
+      (el as HTMLElement).click(),
+    );
     await waitUntilElementFound(this.page, `a[href*="${TRANSACTIONS_PAGE}"]`);
-    await this.page.$eval(`a[href*="${TRANSACTIONS_PAGE}"]`, (el) => (el as HTMLElement).click());
+    await this.page.$eval(`a[href*="${TRANSACTIONS_PAGE}"]`, (el) =>
+      (el as HTMLElement).click(),
+    );
 
     const accountNumberElement = await this.page.$('#dropdownBasic b');
-    const accountNumberHandle = await accountNumberElement?.getProperty('title');
-    const accountNumber = ((await accountNumberHandle?.jsonValue()) as string);
+    const accountNumberHandle =
+      await accountNumberElement?.getProperty('title');
+    const accountNumber = (await accountNumberHandle?.jsonValue()) as string;
 
-    const response = await Promise.any(TRANSACTIONS_REQUEST_URLS.map(async (url) => {
-      const request = await this.page.waitForRequest(url);
-      const data = createDataFromRequest(request, this.options.startDate);
-      const headers = createHeadersFromRequest(request);
+    const response = await Promise.any(
+      TRANSACTIONS_REQUEST_URLS.map(async (url) => {
+        const request = await this.page.waitForRequest(url);
+        const data = createDataFromRequest(request, this.options.startDate);
+        const headers = createHeadersFromRequest(request);
 
-      return fetchPostWithinPage<ScrapedTransactionsResult>(this.page, url, data, headers);
-    }));
-
+        return fetchPostWithinPage<ScrapedTransactionsResult>(
+          this.page,
+          url,
+          data,
+          headers,
+        );
+      }),
+    );
 
     if (!response || response.header.success === false) {
-      throw new Error(`Error fetching transaction. Response message: ${response ? response.header.messages[0].text : ''}`);
+      throw new Error(
+        `Error fetching transaction. Response message: ${response ? response.header.messages[0].text : ''}`,
+      );
     }
 
-    const relevantRows = response.body.table.rows.filter((row) => row.RecTypeSpecified);
+    const relevantRows = response.body.table.rows.filter(
+      (row) => row.RecTypeSpecified,
+    );
     const oshTxn = convertTransactions(relevantRows);
 
     // workaround for a bug which the bank's API returns transactions before the requested start date
     const startMoment = getStartMoment(this.options.startDate);
-    const oshTxnAfterStartDate = oshTxn.filter((txn) => moment(txn.date).isSameOrAfter(startMoment));
+    const oshTxnAfterStartDate = oshTxn.filter((txn) =>
+      moment(txn.date).isSameOrAfter(startMoment),
+    );
 
     const pendingTxn = await this.getPendingTransactions();
     const allTxn = oshTxnAfterStartDate.concat(pendingTxn);

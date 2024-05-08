@@ -7,7 +7,8 @@ import { TransactionsAccount } from '../transactions';
 let testsConfig: Record<string, any>;
 let configurationLoaded = false;
 
-const MISSING_ERROR_MESSAGE = 'Missing test environment configuration. To troubleshoot this issue open CONTRIBUTING.md file and read the "F.A.Q regarding the tests" section.';
+const MISSING_ERROR_MESSAGE =
+  'Missing test environment configuration. To troubleshoot this issue open CONTRIBUTING.md file and read the "F.A.Q regarding the tests" section.';
 
 export function getTestsConfig() {
   if (configurationLoaded) {
@@ -27,7 +28,9 @@ export function getTestsConfig() {
       return testsConfig;
     }
   } catch (e) {
-    throw new Error(`failed to parse environment variable 'TESTS_CONFIG' with error '${e.message}'`);
+    throw new Error(
+      `failed to parse environment variable 'TESTS_CONFIG' with error '${e.message}'`,
+    );
   }
 
   try {
@@ -40,25 +43,36 @@ export function getTestsConfig() {
   }
 }
 
-export function maybeTestCompanyAPI(scraperId: string, filter?: (config: any) => boolean) {
+export function maybeTestCompanyAPI(
+  scraperId: string,
+  filter?: (config: any) => boolean,
+) {
   if (!configurationLoaded) {
     getTestsConfig();
   }
-  return testsConfig && testsConfig.companyAPI.enabled &&
-  testsConfig.credentials[scraperId] &&
-  (!filter || filter(testsConfig)) ? test : test.skip;
+  return testsConfig &&
+    testsConfig.companyAPI.enabled &&
+    testsConfig.credentials[scraperId] &&
+    (!filter || filter(testsConfig))
+    ? test
+    : test.skip;
 }
 
 export function extendAsyncTimeout(timeout = 120000) {
   jest.setTimeout(timeout);
 }
 
-export function exportTransactions(fileName: string, accounts: TransactionsAccount[]) {
+export function exportTransactions(
+  fileName: string,
+  accounts: TransactionsAccount[],
+) {
   const config = getTestsConfig();
 
-  if (!config.companyAPI.enabled ||
+  if (
+    !config.companyAPI.enabled ||
     !config.companyAPI.excelFilesDist ||
-    !fs.existsSync(config.companyAPI.excelFilesDist)) {
+    !fs.existsSync(config.companyAPI.excelFilesDist)
+  ) {
     return;
   }
 
@@ -77,7 +91,8 @@ export function exportTransactions(fileName: string, accounts: TransactionsAccou
           date: moment(txn.date).format('DD/MM/YYYY'),
           processedDate: moment(txn.processedDate).format('DD/MM/YYYY'),
         };
-      })];
+      }),
+    ];
   }
 
   if (data.length === 0) {

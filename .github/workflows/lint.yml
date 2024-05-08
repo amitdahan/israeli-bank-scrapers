@@ -4,7 +4,6 @@ on: [push, pull_request]
 
 jobs:
   lint:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -15,4 +14,3 @@ jobs:
 
       - name: Run lint
         run: npm run lint
-

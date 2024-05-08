@@ -1,5 +1,8 @@
 import {
-  maybeTestCompanyAPI, extendAsyncTimeout, getTestsConfig, exportTransactions,
+  maybeTestCompanyAPI,
+  extendAsyncTimeout,
+  getTestsConfig,
+  exportTransactions,
 } from '../tests/tests-utils';
 import { SCRAPERS } from '../definitions';
 import { LoginResults } from './base-scraper-with-browser';
@@ -22,7 +25,10 @@ describe('OneZero scraper', () => {
     expect(SCRAPERS.oneZero.loginFields).toContain('otpLongTermToken');
   });
 
-  maybeTestCompanyAPI(COMPANY_ID, (config) => config.companyAPI.invalidPassword)('should fail on invalid user/password"', async () => {
+  maybeTestCompanyAPI(
+    COMPANY_ID,
+    (config) => config.companyAPI.invalidPassword,
+  )('should fail on invalid user/password"', async () => {
     const options = {
       ...testsConfig.options,
       companyId: COMPANY_ID,
@@ -30,7 +36,11 @@ describe('OneZero scraper', () => {
 
     const scraper = new OneZeroScraper(options);
 
-    const result = await scraper.scrape({ email: 'e10s12@gmail.com', password: '3f3ss3d', otpLongTermToken: '11111' });
+    const result = await scraper.scrape({
+      email: 'e10s12@gmail.com',
+      password: '3f3ss3d',
+      otpLongTermToken: '11111',
+    });
 
     expect(result).toBeDefined();
     expect(result.success).toBeFalsy();
@@ -46,7 +56,8 @@ describe('OneZero scraper', () => {
     const scraper = new OneZeroScraper(options);
     const result = await scraper.scrape(testsConfig.credentials.oneZero);
     expect(result).toBeDefined();
-    const error = `${result.errorType || ''} ${result.errorMessage || ''}`.trim();
+    const error =
+      `${result.errorType || ''} ${result.errorMessage || ''}`.trim();
     expect(error).toBe('');
     expect(result.success).toBeTruthy();
 

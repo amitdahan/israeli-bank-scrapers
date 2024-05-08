@@ -16,7 +16,9 @@ function updatePackageJson() {
   json.name = 'israeli-bank-scrapers-core';
   fs.writeFileSync(packagePath, JSON.stringify(json, null, '  '));
 
-  console.log('change package.json name to \'israeli-bank-scrapers-core\' and use \'puppeteer-core\'');
+  console.log(
+    "change package.json name to 'israeli-bank-scrapers-core' and use 'puppeteer-core'",
+  );
 }
 
 (async function () {
@@ -28,4 +30,4 @@ function updatePackageJson() {
 
   updatePackageJson();
   await transformImports();
-}());
+})();

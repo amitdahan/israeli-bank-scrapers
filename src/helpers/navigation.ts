@@ -1,7 +1,10 @@
 import { Frame, NavigationOptions, Page } from 'puppeteer';
 import { waitUntil } from './waiting';
 
-export async function waitForNavigation(pageOrFrame: Page | Frame, options?: NavigationOptions) {
+export async function waitForNavigation(
+  pageOrFrame: Page | Frame,
+  options?: NavigationOptions,
+) {
   await pageOrFrame.waitForNavigation(options);
 }
 
@@ -17,19 +20,38 @@ export function getCurrentUrl(pageOrFrame: Page | Frame, clientSide = false) {
   return pageOrFrame.url();
 }
 
-export async function waitForRedirect(pageOrFrame: Page | Frame, timeout = 20000,
-  clientSide = false, ignoreList: string[] = []) {
+export async function waitForRedirect(
+  pageOrFrame: Page | Frame,
+  timeout = 20000,
+  clientSide = false,
+  ignoreList: string[] = [],
+) {
   const initial = await getCurrentUrl(pageOrFrame, clientSide);
 
-  await waitUntil(async () => {
-    const current = await getCurrentUrl(pageOrFrame, clientSide);
-    return current !== initial && !ignoreList.includes(current);
-  }, `waiting for redirect from ${initial}`, timeout, 1000);
+  await waitUntil(
+    async () => {
+      const current = await getCurrentUrl(pageOrFrame, clientSide);
+      return current !== initial && !ignoreList.includes(current);
+    },
+    `waiting for redirect from ${initial}`,
+    timeout,
+    1000,
+  );
 }
 
-export async function waitForUrl(pageOrFrame: Page | Frame, url: string | RegExp, timeout = 20000, clientSide = false) {
-  await waitUntil(async () => {
-    const current = await getCurrentUrl(pageOrFrame, clientSide);
-    return url instanceof RegExp ? url.test(current) : url === current;
-  }, `waiting for url to be ${url}`, timeout, 1000);
+export async function waitForUrl(
+  pageOrFrame: Page | Frame,
+  url: string | RegExp,
+  timeout = 20000,
+  clientSide = false,
+) {
+  await waitUntil(
+    async () => {
+      const current = await getCurrentUrl(pageOrFrame, clientSide);
+      return url instanceof RegExp ? url.test(current) : url === current;
+    },
+    `waiting for url to be ${url}`,
+    timeout,
+    1000,
+  );
 }

@@ -5,5 +5,5 @@ module.exports = function checkIfCoreVariation() {
   // eslint-disable-next-line import/no-dynamic-require,global-require
   const packageJson = require(packagePath);
 
-  return (packageJson.name === 'israeli-bank-scrapers-core');
-}
+  return packageJson.name === 'israeli-bank-scrapers-core';
+};

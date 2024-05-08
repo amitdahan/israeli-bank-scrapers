@@ -1,6 +1,9 @@
 import MaxScraper, { getMemo } from './max';
 import {
-  maybeTestCompanyAPI, extendAsyncTimeout, getTestsConfig, exportTransactions,
+  maybeTestCompanyAPI,
+  extendAsyncTimeout,
+  getTestsConfig,
+  exportTransactions,
 } from '../tests/tests-utils';
 import { SCRAPERS } from '../definitions';
 import { LoginResults } from './base-scraper-with-browser';
@@ -19,7 +22,10 @@ describe('Max scraper', () => {
     expect(SCRAPERS.max.loginFields).toContain('password');
   });
 
-  maybeTestCompanyAPI(COMPANY_ID, (config) => config.companyAPI.invalidPassword)('should fail on invalid user/password"', async () => {
+  maybeTestCompanyAPI(
+    COMPANY_ID,
+    (config) => config.companyAPI.invalidPassword,
+  )('should fail on invalid user/password"', async () => {
     const options = {
       ...testsConfig.options,
       companyId: COMPANY_ID,
@@ -27,7 +33,10 @@ describe('Max scraper', () => {
 
     const scraper = new MaxScraper(options);
 
-    const result = await scraper.scrape({ username: 'e10s12', password: '3f3ss3d' });
+    const result = await scraper.scrape({
+      username: 'e10s12',
+      password: '3f3ss3d',
+    });
 
     expect(result).toBeDefined();
     expect(result.success).toBeFalsy();
@@ -43,7 +52,8 @@ describe('Max scraper', () => {
     const scraper = new MaxScraper(options);
     const result = await scraper.scrape(testsConfig.credentials.max);
     expect(result).toBeDefined();
-    const error = `${result.errorType || ''} ${result.errorMessage || ''}`.trim();
+    const error =
+      `${result.errorType || ''} ${result.errorMessage || ''}`.trim();
     expect(error).toBe('');
     expect(result.success).toBeTruthy();
 
@@ -57,7 +67,14 @@ describe('getMemo', () => {
     [{ comments: '' }, ''],
     [{ comments: 'comment without funds' }, 'comment without funds'],
     [{ comments: '', fundsTransferReceiverOrTransfer: 'Daniel H' }, 'Daniel H'],
-    [{ comments: '', fundsTransferReceiverOrTransfer: 'Daniel', fundsTransferComment: 'Foo bar' }, 'Daniel: Foo bar'],
+    [
+      {
+        comments: '',
+        fundsTransferReceiverOrTransfer: 'Daniel',
+        fundsTransferComment: 'Foo bar',
+      },
+      'Daniel: Foo bar',
+    ],
   ])('%o should create memo: %s', (transaction, expected) => {
     const memo = getMemo(transaction);
     expect(memo).toBe(expected);
