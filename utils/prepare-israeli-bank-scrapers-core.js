@@ -11,8 +11,6 @@ function updatePackageJson() {
   json.dependencies['puppeteer-core'] = json.dependencies.puppeteer;
   delete json.dependencies.puppeteer;
 
-  json.devDependencies['@types/puppeteer-core'] = '5.4.0';
-  delete json.devDependencies['@types/puppeteer'];
   json.name = 'israeli-bank-scrapers-core';
   fs.writeFileSync(packagePath, JSON.stringify(json, null, '  '));
 

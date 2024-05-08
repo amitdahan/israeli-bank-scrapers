@@ -53,7 +53,6 @@
     "@types/lodash": "^4.14.149",
     "@types/node": "^18.19.33",
     "@types/node-fetch": "^2.5.6",
-    "@types/puppeteer": "^5.4.6",
     "@types/source-map-support": "^0.5.1",
     "@types/uuid": "^7.0.3",
     "@typescript-eslint/eslint-plugin": "^7.8.0",
@@ -86,7 +85,7 @@
     "moment": "^2.22.2",
     "moment-timezone": "^0.5.37",
     "node-fetch": "^2.2.0",
-    "puppeteer": "^6.0.0",
+    "puppeteer": "^22.8.0",
     "uuid": "^3.3.2"
   },
   "files": [
