@@ -20,6 +20,18 @@ module.exports = {
     '@typescript-eslint/ban-ts-ignore': 0,
     '@typescript-eslint/no-non-null-assertion': 0,
     '@typescript-eslint/no-throw-literal': 0,
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      {
+        args: 'all',
+        argsIgnorePattern: '^_',
+        caughtErrors: 'all',
+        caughtErrorsIgnorePattern: '^_',
+        destructuredArrayIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        ignoreRestSiblings: true,
+      },
+    ],
 
     // Added while upgrading @typescript-eslint/*
     '@typescript-eslint/ban-ts-comment': 0,
@@ -33,6 +45,12 @@ module.exports = {
     '@typescript-eslint/naming-convention': 0,
     '@typescript-eslint/no-floating-promises': 0,
     '@typescript-eslint/no-redeclare': 0,
+    '@typescript-eslint/no-unsafe-enum-comparison': 0,
+    '@typescript-eslint/no-unnecessary-type-assertion': 0,
+    '@typescript-eslint/no-redundant-type-constituents': 0,
+
+    // Added while upgrading eslint-config-airbnb-*
+    'no-unsafe-optional-chaining': 0,
   },
   globals: {
     document: true,
@@ -49,6 +67,7 @@ module.exports = {
     sourceType: 'module', // Allows for the use of imports
   },
   extends: [
+    'airbnb-base',
     'airbnb-typescript/base',
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
