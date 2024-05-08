@@ -13,6 +13,7 @@ import {
 } from './base-scraper-with-browser';
 import { ScraperScrapingResult } from './interface';
 import { waitUntilElementFound } from '../helpers/elements-interactions';
+import { setTimeout } from 'node:timers/promises';
 
 const BASE_URL = 'https://www.behatsdaa.org.il';
 const LOGIN_URL = `${BASE_URL}/login`;
@@ -79,9 +80,9 @@ class BehatsdaaScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials
         [LoginResults.InvalidPassword]: ['.custom-input-error-label'],
       },
       submitButtonSelector: async () => {
-        await this.page.waitForTimeout(1000);
+        await setTimeout(1000);
         debug('Trying to find submit button');
-        const [button] = await this.page.$x("//button[contains(., 'התחברות')]");
+        const [button] = await this.page.$$("//button[contains(., 'התחברות')]");
         if (button) {
           debug('Submit button found');
           await button.click();

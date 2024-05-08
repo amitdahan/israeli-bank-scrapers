@@ -1,4 +1,4 @@
-import puppeteer, { Browser, Frame, Page, LoadEvent } from 'puppeteer';
+import puppeteer, { Browser, Frame, Page, PuppeteerLifeCycleEvent } from 'puppeteer';
 
 import { BaseScraper } from './base-scraper';
 import { getCurrentUrl, waitForNavigation } from '../helpers/navigation';
@@ -55,7 +55,7 @@ export interface LoginOptions {
   postAction?: () => Promise<void>;
   possibleResults: PossibleLoginResults;
   userAgent?: string;
-  waitUntil?: LoadEvent;
+  waitUntil?: PuppeteerLifeCycleEvent;
 }
 
 async function getKeyByValue(
@@ -194,7 +194,7 @@ class BaseScraperWithBrowser<
     url: string,
     page?: Page,
     timeout?: number,
-    waitUntil: LoadEvent | undefined = 'load',
+    waitUntil: PuppeteerLifeCycleEvent | undefined = 'load',
   ): Promise<void> {
     const pageToUse = page || this.page;
 

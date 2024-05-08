@@ -197,7 +197,7 @@ class BeyahadBishvilhaScraper extends BaseScraperWithBrowser<ScraperSpecificCred
       loginUrl: LOGIN_URL,
       fields: createLoginFields(credentials),
       submitButtonSelector: async () => {
-        const [button] = await this.page.$x("//button[contains(., 'התחבר')]");
+        const [button] = await this.page.$$("//button[contains(., 'התחבר')]");
         if (button) {
           await button.click();
         }

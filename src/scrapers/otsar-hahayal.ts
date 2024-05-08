@@ -19,6 +19,7 @@ import {
   TransactionStatuses,
   TransactionTypes,
 } from '../transactions';
+import { setTimeout } from 'node:timers/promises';
 
 const BASE_URL = 'https://online.bankotsar.co.il';
 const LONG_DATE_FORMAT = 'DD/MM/YYYY';
@@ -217,7 +218,7 @@ class OtsarHahayalScraper extends BaseScraperWithBrowser<ScraperSpecificCredenti
       loginUrl: `${BASE_URL}/MatafLoginService/MatafLoginServlet?bankId=OTSARPRTAL&site=Private&KODSAFA=HE`,
       fields: createLoginFields(credentials),
       submitButtonSelector: async () => {
-        await this.page.waitForTimeout(1000);
+        await setTimeout(1000);
         await clickButton(this.page, '#continueBtn');
       },
       postAction: async () => waitForPostLogin(this.page),

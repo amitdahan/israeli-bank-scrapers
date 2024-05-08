@@ -20,6 +20,7 @@ import {
   TransactionStatuses,
   TransactionTypes,
 } from '../transactions';
+import { setTimeout } from 'node:timers/promises';
 
 const DATE_FORMAT = 'DD/MM/YYYY';
 const NO_TRANSACTION_IN_DATE_RANGE_TEXT = 'לא נמצאו נתונים בנושא המבוקש';
@@ -418,7 +419,7 @@ class BeinleumiGroupBaseScraper extends BaseScraperWithBrowser<ScraperSpecificCr
       // HACK: For some reason, though the login button (#continueBtn) is present and visible, the click action does not perform.
       // Adding this delay fixes the issue.
       preAction: async () => {
-        await this.page.waitForTimeout(1000);
+        await setTimeout(1000);
       },
     };
   }
