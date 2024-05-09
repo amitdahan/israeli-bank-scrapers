@@ -39,7 +39,14 @@ export class BaseScraper<TCredentials extends ScraperCredentials>
       loginResult =
         e instanceof TimeoutError
           ? createTimeoutError(e.message)
-          : createGenericError(e.message);
+          : createGenericError(
+              e &&
+                typeof e === 'object' &&
+                'message' in e &&
+                typeof e.message === 'string'
+                ? e.message
+                : String(e),
+            );
     }
 
     let scrapeResult;
@@ -50,7 +57,14 @@ export class BaseScraper<TCredentials extends ScraperCredentials>
         scrapeResult =
           e instanceof TimeoutError
             ? createTimeoutError(e.message)
-            : createGenericError(e.message);
+            : createGenericError(
+                e &&
+                  typeof e === 'object' &&
+                  'message' in e &&
+                  typeof e.message === 'string'
+                  ? e.message
+                  : String(e),
+              );
       }
     } else {
       scrapeResult = loginResult;
@@ -60,7 +74,14 @@ export class BaseScraper<TCredentials extends ScraperCredentials>
       const success = scrapeResult && scrapeResult.success === true;
       await this.terminate(success);
     } catch (e) {
-      scrapeResult = createGenericError(e.message);
+      scrapeResult = createGenericError(
+        e &&
+          typeof e === 'object' &&
+          'message' in e &&
+          typeof e.message === 'string'
+          ? e.message
+          : String(e),
+      );
     }
     this.emitProgress(ScraperProgressTypes.EndScraping);
 

@@ -29,7 +29,14 @@ export function getTestsConfig() {
     }
   } catch (e) {
     throw new Error(
-      `failed to parse environment variable 'TESTS_CONFIG' with error '${e.message}'`,
+      `failed to parse environment variable 'TESTS_CONFIG' with error '${
+        e &&
+        typeof e === 'object' &&
+        'message' in e &&
+        typeof e.message === 'string'
+          ? e.message
+          : String(e)
+      }'`,
     );
   }
 
