@@ -123,8 +123,8 @@ function hangProcess(timeout: number) {
 }
 
 async function clickByXPath(page: Page, xpath: string): Promise<void> {
-  await page.waitForXPath(xpath, { timeout: 30000, visible: true });
-  const elm = await page.$x(xpath);
+  await page.waitForSelector(xpath, { timeout: 30000, visible: true });
+  const elm = await page.$$(xpath);
   await elm[0].click();
 }
 
@@ -274,7 +274,7 @@ async function waitForPostLogin(page: Page): Promise<void> {
   await Promise.race([
     waitUntilElementFound(page, 'a[title="דלג לחשבון"]', true, 60000),
     waitUntilElementFound(page, 'div.main-content', true, 60000),
-    page.waitForXPath(`//div[contains(string(),"${INVALID_PASSWORD_MSG}")]`),
+    page.waitForSelector(`//div[contains(string(),"${INVALID_PASSWORD_MSG}")]`),
     waitUntilElementFound(page, 'form[action="/changepassword"]', true, 60000), // not sure if they kept this one
   ]);
 }

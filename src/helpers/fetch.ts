@@ -93,13 +93,13 @@ export function fetchPostWithinPage<TResult>(
   data: Record<string, any>,
   extraHeaders: Record<string, any> = {},
 ): Promise<TResult | null> {
-  return page.evaluate<(...args: any[]) => Promise<TResult | null>>(
+  return page.evaluate(
     (
       url: string,
       data: Record<string, any>,
       extraHeaders: Record<string, any>,
     ) => {
-      return new Promise((resolve, reject) => {
+      return new Promise<TResult | null>((resolve, reject) => {
         fetch(url, {
           method: 'POST',
           body: JSON.stringify(data),

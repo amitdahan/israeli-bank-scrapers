@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { Frame, Page, Request } from 'puppeteer';
+import { Frame, Page, HTTPRequest } from 'puppeteer';
 import { SHEKEL_CURRENCY } from '../constants';
 import {
   pageEvalAll,
@@ -87,7 +87,7 @@ async function isLoggedIn(options: { page?: Page | undefined } | undefined) {
     return false;
   }
   const oshXPath = `//a//span[contains(., "${checkingAccountTabHebrewName}") or contains(., "${checkingAccountTabEnglishName}")]`;
-  const oshTab = await options.page.$x(oshXPath);
+  const oshTab = await options.page.$$(oshXPath);
   return oshTab.length > 0;
 }
 
@@ -107,7 +107,7 @@ function getStartMoment(optionsStartDate: Date) {
   return moment.max(defaultStartMoment, moment(startDate));
 }
 
-function createDataFromRequest(request: Request, optionsStartDate: Date) {
+function createDataFromRequest(request: HTTPRequest, optionsStartDate: Date) {
   const data = JSON.parse(request.postData() || '{}');
 
   data.inFromDate = getStartMoment(optionsStartDate).format(DATE_FORMAT);
@@ -117,7 +117,7 @@ function createDataFromRequest(request: Request, optionsStartDate: Date) {
   return data;
 }
 
-function createHeadersFromRequest(request: Request) {
+function createHeadersFromRequest(request: HTTPRequest) {
   return {
     mizrahixsrftoken: request.headers().mizrahixsrftoken,
     'Content-Type': request.headers()['content-type'],

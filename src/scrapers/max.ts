@@ -1,6 +1,6 @@
 import buildUrl from 'build-url';
 import moment, { Moment } from 'moment';
-import { Page, LoadEvent } from 'puppeteer';
+import { Page } from 'puppeteer';
 import { fetchGetWithinPage } from '../helpers/fetch';
 import {
   BaseScraperWithBrowser,
@@ -401,7 +401,7 @@ class MaxScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials> {
       },
       postAction: async () => redirectOrDialog(this.page),
       possibleResults: getPossibleLoginResults(this.page),
-      waitUntil: 'domcontentloaded' as LoadEvent,
+      waitUntil: 'domcontentloaded' as const,
     };
   }
 

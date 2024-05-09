@@ -1,11 +1,8 @@
 const fs = require('fs');
 const path = require('path');
-const checkIfCoreVariation = require('./core-utils');
 
 function getPuppeteerChromiumVersion() {
-  const puppeteerLibrary = checkIfCoreVariation()
-    ? 'puppeteer-core'
-    : 'puppeteer';
+  const puppeteerLibrary = 'puppeteer-core/package.json';
   const puppeteerPath = path.dirname(require.resolve(puppeteerLibrary));
   const revisionFilePath = path.join(
     puppeteerPath,
@@ -13,7 +10,7 @@ function getPuppeteerChromiumVersion() {
   );
   // eslint-disable-next-line import/no-dynamic-require,global-require
   const revisionRaw = fs.readFileSync(revisionFilePath, 'utf-8');
-  const [, revisionNumber] = revisionRaw.match(/chromium: ['"`](.+?)['"`][,]/);
+  const [, revisionNumber] = revisionRaw.match(/chrome: ['"`](.+?)['"`][,]/);
   return revisionNumber;
 }
 

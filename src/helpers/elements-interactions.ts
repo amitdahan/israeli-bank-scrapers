@@ -157,7 +157,11 @@ async function dropdownSelect(
 
 async function dropdownElements(page: Page, selector: string) {
   const options = await page.evaluate((optionSelector) => {
-    return Array.from(document.querySelectorAll(optionSelector))
+    return (
+      Array.from(
+        document.querySelectorAll(optionSelector),
+      ) as HTMLOptionElement[]
+    )
       .filter((o) => o.value)
       .map((o) => {
         return {

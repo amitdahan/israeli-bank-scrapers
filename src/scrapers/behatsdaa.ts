@@ -1,4 +1,5 @@
 import moment from 'moment';
+import { setTimeout } from 'node:timers/promises';
 import { getDebug } from '../helpers/debug';
 import { fetchPostWithinPage } from '../helpers/fetch';
 import {
@@ -79,9 +80,9 @@ class BehatsdaaScraper extends BaseScraperWithBrowser<ScraperSpecificCredentials
         [LoginResults.InvalidPassword]: ['.custom-input-error-label'],
       },
       submitButtonSelector: async () => {
-        await this.page.waitForTimeout(1000);
+        await setTimeout(1000);
         debug('Trying to find submit button');
-        const [button] = await this.page.$x("//button[contains(., 'התחברות')]");
+        const [button] = await this.page.$$("//button[contains(., 'התחברות')]");
         if (button) {
           debug('Submit button found');
           await button.click();

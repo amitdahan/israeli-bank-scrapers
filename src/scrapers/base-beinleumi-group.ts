@@ -1,5 +1,6 @@
 import moment, { Moment } from 'moment';
 import { Page } from 'puppeteer';
+import { setTimeout } from 'node:timers/promises';
 import {
   BaseScraperWithBrowser,
   LoginResults,
@@ -418,7 +419,7 @@ class BeinleumiGroupBaseScraper extends BaseScraperWithBrowser<ScraperSpecificCr
       // HACK: For some reason, though the login button (#continueBtn) is present and visible, the click action does not perform.
       // Adding this delay fixes the issue.
       preAction: async () => {
-        await this.page.waitForTimeout(1000);
+        await setTimeout(1000);
       },
     };
   }

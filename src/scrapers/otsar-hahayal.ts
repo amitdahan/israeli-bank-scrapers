@@ -1,5 +1,6 @@
 import moment, { Moment } from 'moment';
 import { Page } from 'puppeteer';
+import { setTimeout } from 'node:timers/promises';
 import {
   BaseScraperWithBrowser,
   LoginResults,
@@ -217,7 +218,7 @@ class OtsarHahayalScraper extends BaseScraperWithBrowser<ScraperSpecificCredenti
       loginUrl: `${BASE_URL}/MatafLoginService/MatafLoginServlet?bankId=OTSARPRTAL&site=Private&KODSAFA=HE`,
       fields: createLoginFields(credentials),
       submitButtonSelector: async () => {
-        await this.page.waitForTimeout(1000);
+        await setTimeout(1000);
         await clickButton(this.page, '#continueBtn');
       },
       postAction: async () => waitForPostLogin(this.page),
