@@ -28,7 +28,7 @@ function getPuppeteerChromiumVersion() {
   const configJson = require(configPath);
   configJson.chromiumRevision = chromiumRevision;
 
-  fs.writeFileSync(configPath, JSON.stringify(configJson, null, '  '));
+  fs.writeFileSync(configPath, JSON.stringify(configJson, null, '  ') + '\n');
 
   console.log(
     `update 'src/puppeteer-config.json' file with puppeteer chroumium revision '${chromiumRevision}'`,
