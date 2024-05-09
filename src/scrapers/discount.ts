@@ -146,7 +146,7 @@ async function fetchAccountData(
 async function navigateOrErrorLabel(page: Page) {
   try {
     await waitForNavigation(page);
-  } catch (e) {
+  } catch (_e) {
     await waitUntilElementFound(page, '#general-error', false, 100);
   }
 }
