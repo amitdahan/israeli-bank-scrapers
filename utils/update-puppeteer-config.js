@@ -1,11 +1,8 @@
 const fs = require('fs');
 const path = require('path');
-const checkIfCoreVariation = require('./core-utils');
 
 function getPuppeteerChromiumVersion() {
-  const puppeteerLibrary = checkIfCoreVariation()
-    ? 'puppeteer-core/package.json'
-    : 'puppeteer/package.json';
+  const puppeteerLibrary = 'puppeteer-core/package.json';
   const puppeteerPath = path.dirname(require.resolve(puppeteerLibrary));
   const revisionFilePath = path.join(
     puppeteerPath,
