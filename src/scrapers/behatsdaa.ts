@@ -1,4 +1,5 @@
 import moment from 'moment';
+import { setTimeout } from 'node:timers/promises';
 import { getDebug } from '../helpers/debug';
 import { fetchPostWithinPage } from '../helpers/fetch';
 import {
@@ -13,7 +14,6 @@ import {
 } from './base-scraper-with-browser';
 import { ScraperScrapingResult } from './interface';
 import { waitUntilElementFound } from '../helpers/elements-interactions';
-import { setTimeout } from 'node:timers/promises';
 
 const BASE_URL = 'https://www.behatsdaa.org.il';
 const LOGIN_URL = `${BASE_URL}/login`;

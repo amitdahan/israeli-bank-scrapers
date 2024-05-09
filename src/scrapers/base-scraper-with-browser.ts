@@ -1,4 +1,9 @@
-import puppeteer, { Browser, Frame, Page, PuppeteerLifeCycleEvent } from 'puppeteer';
+import puppeteer, {
+  Browser,
+  Frame,
+  Page,
+  PuppeteerLifeCycleEvent,
+} from 'puppeteer';
 
 import { BaseScraper } from './base-scraper';
 import { getCurrentUrl, waitForNavigation } from '../helpers/navigation';

@@ -1,5 +1,6 @@
 import moment, { Moment } from 'moment';
 import { Page } from 'puppeteer';
+import { setTimeout } from 'node:timers/promises';
 import {
   BaseScraperWithBrowser,
   LoginResults,
@@ -20,7 +21,6 @@ import {
   TransactionStatuses,
   TransactionTypes,
 } from '../transactions';
-import { setTimeout } from 'node:timers/promises';
 
 const DATE_FORMAT = 'DD/MM/YYYY';
 const NO_TRANSACTION_IN_DATE_RANGE_TEXT = 'לא נמצאו נתונים בנושא המבוקש';
